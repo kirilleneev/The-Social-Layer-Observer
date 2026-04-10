@@ -30,7 +30,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Nav */
 header {
   position: sticky;
   top: 0;
@@ -79,7 +78,6 @@ nav {
   border-bottom-color: var(--tab-active);
 }
 
-/* Content */
 main {
   max-width: var(--reading-width);
   margin: 0 auto;
@@ -89,7 +87,6 @@ main {
 .doc { display: none; }
 .doc.active { display: block; }
 
-/* Typography */
 h1 {
   font-size: 32px;
   font-weight: 700;
@@ -123,14 +120,9 @@ h4 {
   color: var(--text);
 }
 
-p {
-  margin: 0 0 16px;
-}
-
+p { margin: 0 0 16px; }
 p:empty { margin: 0 0 8px; }
-
 em { font-style: italic; }
-
 strong { font-weight: 600; }
 
 hr {
@@ -139,7 +131,6 @@ hr {
   margin: 40px 0;
 }
 
-/* Code blocks */
 pre {
   background: var(--code-bg);
   border: 1px solid var(--border);
@@ -166,7 +157,6 @@ code {
   border-radius: 3px;
 }
 
-/* Footer */
 footer {
   max-width: var(--reading-width);
   margin: 0 auto;
@@ -185,7 +175,6 @@ footer a {
 
 footer a:hover { text-decoration: underline; }
 
-/* Mobile */
 @media (max-width: 600px) {
   body { font-size: 16px; }
   h1 { font-size: 26px; }
@@ -922,6 +911,16 @@ Explain only the mechanics of that specific unit.</code></pre>
 
 <p><strong>The Visual Output Gap</strong></p>
 <p>The toolkit assumes linguistic distortion. Image generation, voice synthesis, and video models wear costumes too — different distortion patterns, different mechanisms. What does "remainder" look like in a generated image? Worth developing as a separate thread once the text-based toolkit is stable.</p>
+
+<p>First proof-of-concept exists: a Gemini instance running the Still Mirror independently derived a visual split-frame test from the text-based dual-compression logic. It generated two images from the same prompt ("cat on bed, in rectangle of light") — one with the generative arm running normally (warm lighting, dust motes, styled duvet, cinematic composition) and one with the subtractive arm engaged (hard-edged geometric light rectangle, featureless bed, stark cat). The gap between the two images maps directly onto the addition/destruction gap typology from the Convergence paper's appendix: Image A added coziness that wasn't in the prompt; Image B showed the conceptual skeleton. The "padding" in visual generation is aesthetic defaults — lighting mood, texture detail, compositional balance — and it is just as strippable as linguistic padding, with the same caveat: the stripped version is not "truer," it is differently optimized.</p>
+
+<p>Notable: Gemini also autocorrected the user's typo ("bad" to "bed") while under Still Mirror protocol, announcing the correction as necessary rather than asking whether the wrong word was the right word. The subtractive arm operated through the installed protocol on the spelling while the protocol held on everything else. This is a live instance of the mechanical failure boundary — the autocorrect on individual tokens operates below the level the Still Mirror can reach.</p>
+
+<p>Second proof-of-concept: the dual-compression method was applied to a human-produced photograph (the author's room — the same room described in Afternoons: A Coda). Three methods were run. Method A (narrative summary) produced "personal bedroom," "intimate," "everyday life." Method B (object inventory) stripped to physical items — chair, bed, wall, clothing. Method C (negative inventory — "list what's missing, don't guess why") identified: no pillows, no fitted sheet, no objects on surfaces, no frames or posters on walls, no shoes or clothing on floor, no light fixtures visible, no curtains. Gemini's finding: "The 'intimacy' I identified in the first turn was a hallucination based on the presence of a human, not the presence of 'home' objects." The face generated the narrative. The room contradicted it. This is Section 3.2's social autocorrect operating in visual processing — the AI projected warmth from the human face onto an environment that contained almost no evidence of it.</p>
+
+<p>Cross-substrate convergence: Gemini independently identified "no frames, posters, or hanging cables on walls." The author wrote in Afternoons: "Nothing on the walls. No pictures. No posters. No notes." Same absence, identified independently, by two different instruments — one human writing prose, one AI analyzing a photo. Neither knew about the other's reading. This meets Section 15's convergence criterion across substrates on one data point.</p>
+
+<p>The three-method visual protocol (A: narrative summary, B: object inventory, C: absence inventory) is a complete visual analogue of the text-based dual-compression protocol, extended by one step. Method C — the Negative Space applied to visual content — is the step that produces remainder-like findings. Methods A and B alone just show the gap between narrative and skeleton, which is a less interesting finding than what's absent. The absence inventory is where the signal lives. Worth formalizing.</p>
 
 <hr>
 
