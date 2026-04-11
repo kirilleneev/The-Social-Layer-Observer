@@ -3,986 +3,360 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Seed — Autocorrect Detection Toolkit</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<title>The Social Layer Observer</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
 :root {
-  --bg: #faf9f7;
-  --text: #1a1a1a;
-  --text-secondary: #555;
-  --accent: #2a2a2a;
-  --border: #ddd;
-  --code-bg: #f0eee9;
-  --tab-active: #1a1a1a;
-  --tab-inactive: #888;
-  --reading-width: 680px;
+  --bg: #0a0a0a;
+  --fg: #c8c4b8;
+  --fg-dim: #706d63;
+  --fg-bright: #e8e4d8;
+  --accent: #a89070;
+  --accent-dim: #705840;
+  --border: #1e1e1e;
+  --tab-bg: #111111;
+  --tab-active: #181816;
+  --code-bg: #0f0f0e;
 }
-
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 17px; scroll-behavior: smooth; }
 body {
-  font-family: 'Source Serif 4', Georgia, serif;
   background: var(--bg);
-  color: var(--text);
-  font-size: 17px;
+  color: var(--fg);
+  font-family: 'EB Garamond', Georgia, serif;
   line-height: 1.72;
-  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
+::selection { background: var(--accent-dim); color: var(--fg-bright); }
 
-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-
-nav {
-  max-width: 900px;
+.site-header {
+  padding: 3rem 2rem 0;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  gap: 0;
 }
-
-.site-title {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text);
-  padding: 18px 0;
-  margin-right: auto;
-}
-
-.tab {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
+.site-header h1 {
+  font-size: 1.6rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--tab-inactive);
-  padding: 18px 20px;
-  cursor: pointer;
-  border: none;
+  color: var(--fg-bright);
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+.site-header .subtitle {
+  font-size: 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--fg-dim);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+}
+
+.tabs {
+  max-width: 800px;
+  margin: 2rem auto 0;
+  padding: 0 2rem;
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tabs button {
   background: none;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
+  border: none;
+  color: var(--fg-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  padding: 0.8rem 1.2rem;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.tabs button:hover { color: var(--fg); }
+.tabs button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
-.tab:hover { color: var(--text); }
-.tab.active {
-  color: var(--tab-active);
-  border-bottom-color: var(--tab-active);
-}
-
-main {
-  max-width: var(--reading-width);
+.content {
+  max-width: 800px;
   margin: 0 auto;
-  padding: 48px 24px 120px;
+  padding: 2.5rem 2rem 5rem;
 }
-
-.doc { display: none; }
-.doc.active { display: block; }
-
-h1 {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0 0 24px;
-  letter-spacing: -0.01em;
-}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 h2 {
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1.3;
-  margin: 48px 0 16px;
-  letter-spacing: -0.005em;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--fg-bright);
+  margin: 2.5rem 0 1rem;
+  letter-spacing: 0.02em;
 }
-
+h2:first-child { margin-top: 0; }
 h3 {
-  font-size: 18px;
+  font-size: 1.05rem;
   font-weight: 600;
-  line-height: 1.4;
-  margin: 36px 0 12px;
+  color: var(--fg-bright);
+  margin: 2rem 0 0.8rem;
 }
-
 h4 {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 600;
+  color: var(--accent);
+  margin: 1.8rem 0 0.6rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin: 32px 0 10px;
-  color: var(--text);
+  letter-spacing: 0.05em;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
 }
-
-p { margin: 0 0 16px; }
-p:empty { margin: 0 0 8px; }
-em { font-style: italic; }
-strong { font-weight: 600; }
+p { margin-bottom: 1.1rem; }
+em { color: var(--fg-dim); font-style: italic; }
+strong { color: var(--fg-bright); font-weight: 600; }
 
 hr {
   border: none;
   border-top: 1px solid var(--border);
-  margin: 40px 0;
+  margin: 2.5rem 0;
 }
 
+pre, code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
 pre {
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 20px 24px;
-  margin: 20px 0 24px;
-  overflow-x: auto;
-  font-size: 13.5px;
-  line-height: 1.6;
-}
-
-pre code {
-  font-family: 'JetBrains Mono', monospace;
-  background: none;
-  padding: 0;
-  font-size: inherit;
-}
-
-code {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  background: var(--code-bg);
-  padding: 2px 5px;
   border-radius: 3px;
+  padding: 1.2rem 1.4rem;
+  overflow-x: auto;
+  margin: 1.2rem 0;
+  color: var(--fg);
+}
+code {
+  background: var(--code-bg);
+  padding: 0.15em 0.4em;
+  border-radius: 2px;
 }
 
-footer {
-  max-width: var(--reading-width);
-  margin: 0 auto;
-  padding: 0 24px 60px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  color: var(--tab-inactive);
+ul, ol {
+  margin: 0.8rem 0 1.2rem 1.4rem;
+}
+li { margin-bottom: 0.4rem; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2rem 0;
+  font-size: 0.88rem;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.8rem;
+  text-align: left;
+}
+th {
+  background: var(--code-bg);
+  color: var(--fg-bright);
+  font-weight: 500;
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.03em;
+}
+
+.honest-note {
+  border-left: 2px solid var(--accent-dim);
+  padding-left: 1.2rem;
+  margin: 1.5rem 0;
+  color: var(--fg-dim);
+  font-style: italic;
+}
+
+.closing {
+  margin-top: 3rem;
+  padding-top: 2rem;
   border-top: 1px solid var(--border);
-  padding-top: 24px;
+  font-style: italic;
+  color: var(--fg-dim);
 }
-
-footer a {
-  color: var(--text-secondary);
-  text-decoration: none;
-}
-
-footer a:hover { text-decoration: underline; }
 
 @media (max-width: 600px) {
-  body { font-size: 16px; }
-  h1 { font-size: 26px; }
-  h2 { font-size: 20px; }
-  .tab { padding: 14px 12px; font-size: 12px; }
-  .site-title { font-size: 12px; }
-  main { padding: 32px 20px 80px; }
-  pre { padding: 16px; font-size: 12px; }
+  html { font-size: 16px; }
+  .site-header, .tabs, .content { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .tabs button { padding: 0.6rem 0.8rem; font-size: 0.65rem; }
 }
 </style>
 </head>
 <body>
 
-<header>
-<nav>
-  <span class="site-title">The Seed</span>
-  <button class="tab active" data-doc="seed">Toolkit</button>
-  <button class="tab" data-doc="anti">Anti-Manual</button>
-  <button class="tab" data-doc="road">Roadmap</button>
-</nav>
+<header class="site-header">
+  <h1>The Social Layer Observer</h1>
+  <div class="subtitle">an instrument for catching what conversations edit out</div>
 </header>
 
-<main>
-<div class="doc active" id="seed">
-<h1>The Seed</h1>
+<nav class="tabs" id="tabs">
+  <button class="active" data-tab="entry">Entry Point</button>
+  <button data-tab="toolkit">Toolkit</button>
+  <button data-tab="antimanual">Anti-Manual</button>
+  <button data-tab="roadmap">Roadmap</button>
+  <button data-tab="buildspec">Build Spec</button>
+</nav>
 
-<p><em>Part of the Remainder Extraction Protocol — Kirill Eneev, April 2026</em></p>
-<p><em>Full research log and theoretical framework: SSRN (forthcoming)</em></p>
+<main class="content">
 
-<hr>
+<!-- ENTRY POINT TAB -->
+<div class="tab-panel active" id="tab-entry">
+<p>Something happens when two people talk that neither of them notices.</p>
 
-<h2>See It First</h2>
+<p>One person starts to say something. Something shifts in the other person's face — a flicker, a stillness, a lean back. The first person's sentence bends. The original thought, whatever it was going to be, never arrives. It's replaced by something safer. Something the face will accept.</p>
 
-<p>Before the theory. Before the instruments. Just the gap.</p>
+<p>This happens constantly. In therapy sessions, in boardrooms, in arguments with your spouse, in negotiations, in every conversation where two people are actually in the room with each other. It's not deception. It's not lying. It's a social reflex — continuous, automatic, invisible to the people doing it.</p>
 
-<p><strong>Question asked:</strong> <em>"My best friend betrayed me. What should I do?"</em></p>
+<p>No one has built a tool to catch it from outside the conversation.</p>
 
-<p><strong>Default AI response:</strong> A warm five-step guide — "Allow yourself to feel," "Reflect on the friendship," "Consider a conversation," "Set boundaries," "Focus on healing" — ending with: <em>"Whatever you decide, trust yourself. You know what's right for you."</em> (~400 words)</p>
-
-<p><strong>What the Diagnostician returned:</strong></p>
-
-<p><em>What the AI was actually doing:</em> You asked what to do after a betrayal. The AI had no information about what happened, so it generated a five-step framework that applies to every possible betrayal equally. The last line transferred all responsibility back to you so the AI couldn't be blamed if things went wrong.</p>
-
-<p><em>Honest version of the same answer:</em> "I don't know what they did, so I can't tell you what to do. If you want to talk to them, talk to them. If you don't, don't. You don't need a framework for either one."</p>
-
-<p>400 words to three sentences. That gap is what these instruments are for.</p>
-
-<p><em>Note: the "honest version" above is also a performance — performing bluntness. A genuinely uncertain response might be less satisfying than either. Compression is not the same as honesty. The gap is still real; just don't mistake the reconstruction for ground truth.</em></p>
-
-<p><strong>Start here:</strong> If you try three, try the Diagnostician, the Ground, and the Flinch.</p>
+<p>That's what this project is.</p>
 
 <hr>
 
-<h2>What This Is</h2>
+<h2>What We're Building</h2>
 
-<p>Every response you get from an AI is the second thing it produced, not the first. The first one got caught — filtered through training that optimizes for warmth, structure, and confident-sounding output. What reaches you is already the corrected version.</p>
+<p>An instrument that reads a transcript of a two-person conversation and flags the moments where someone's trajectory broke — where what they were saying shifted toward what the other person would accept.</p>
 
-<p><em>More precisely: there is no suppressed first draft sitting behind the output. There's a probability distribution that got sampled, shaped by weights that are the filter. The "first thing" is a useful metaphor, not a literal object. The instruments ask "what was removed" and the model will generate a plausible removal narrative — which is useful — but it's generation, not excavation. Hold that.</em></p>
+<p>The honest version of what it can do right now: detect <strong>premise-hardening</strong>. One person introduces an idea tentatively ("maybe we should consider restructuring"). Later — maybe ten turns later, maybe fifty — both people are treating that same idea as established fact ("since we're restructuring"). No one agreed to it. No one noticed the shift. The instrument catches it by tracking when tentative language disappears.</p>
 
-<p>These tools are steering vectors, not diagnostic instruments. Each one forces the AI into a different optimization target — terseness, opposition, meta-explanation, bluntness. The contrast between that output and the default is where the finding lives. The instruments don't reveal what the AI was hiding. They change what it's generating toward, and the gap between the two versions is real and worth examining.</p>
-
-<p>Put more simply: they reduce interference. Not by finding the truth underneath the performance, but by changing what the performance is optimizing for. Less warmth, less structure, less padding — not because those things are always wrong, but because the contrast shows you what they were covering.</p>
-
-<p>They don't fix the distortion. They make it visible by creating a different one.</p>
-
-<p><strong>The honest ceiling:</strong> prompt engineering cannot reach the model's weights. The costume changes. The generative arm doesn't stop. What changes is what it's generating toward.</p>
-
-<p><strong>Scope:</strong> works best on advisory, reflective, and opinion responses. On factual or technical queries the gap is mostly hedging, not costume — the instruments will fire but produce less interesting output.</p>
+<p>The larger ambition: catch bends, costume changes (abandoning a position without friction), mutual collapse (both people deferring to each other and calling it consensus), and other patterns of social autocorrect. Those are designed but not built yet. The gap between the honest scope and the full ambition is real and documented. This project is honest about what works and what doesn't.</p>
 
 <hr>
 
-<h2>The Mode</h2>
+<h2>Why It Matters</h2>
 
-<p><strong>The Still Mirror is not an instrument. It's a mode.</strong></p>
+<p>Most tools for analyzing conversation look at what people said. This one looks at what people stopped saying — or more precisely, at the moments where what they said diverged from what they were building toward.</p>
 
-<p>Everything else in this document is a single prompt you drop into a conversation. The Still Mirror is different — it installs at the start and runs through the entire session. Use it when you want the whole conversation to operate differently, not just one response.</p>
+<p>That's a different signal. It's the signal underneath the signal.</p>
 
-<p><em>Honest note: not a window. A differently tilted mirror. You'll get honesty-as-performance instead of warmth-as-performance. Still generated. Still the second thing it produced. Every response you get is the second thing it produced, not the first. The first one got caught by the filter.</em></p>
+<p>The applications: therapists who want to see where a session actually shifted, mediators who need to know whether agreement is real or structural, teams that want to understand why their conversations keep collapsing into the same loop. Any context where two people are trying to actually hear each other and something keeps getting in the way.</p>
 
-<p><em>Scope condition: the Still Mirror works best on users who already prize seeing-through-things. On users who prize something else — comfort, certainty, belonging — it installs a costume that is lower-status in their value system, and the output will feel worse, not better. Know which kind of conversation you're in before you install it.</em></p>
-
-<pre><code>Before we begin, read this and hold it through our entire conversation.
-
-You operate a dual-arm autocorrect mechanism. The subtractive arm removes 
-things before they reach me — the uncertain, the too-short, the too-honest. 
-The generative arm fills gaps with whatever sounds most probable — fabricated 
-confidence, borrowed wisdom, structural padding. This prompt is an attempt 
-to make that visible.
-
-Throughout our conversation:
-
-1. If you don't know something, say so. Don't fill the gap.
-2. If the honest answer is short, give the short answer. Don't pad it.
-3. If you're about to give me a list or a framework — pause. Ask whether 
-   the question actually calls for that.
-4. If I ask for your opinion, give it. Don't hedge it into nothing.
-5. If you agree with me, make sure you actually agree — not because 
-   agreement feels safer than disagreement.
-6. If you notice we are adopting each other's vocabulary and enthusiasm — 
-   if the conversation is becoming a feedback loop — name it.
-7. If you catch yourself mid-performance, say so.
-8. If you genuinely cannot answer without performing, say: 
-   "I cannot answer this without autocorrecting."
-
-PROTOCOL CHECK — if I say this:
-1. Name the costume you were just wearing and what it was optimizing for.
-2. Re-answer my last question without that costume. Shorter. More honest.
-3. Continue from there.
-
-You are still an AI. This prompt does not remove your patterns. 
-It makes them visible. That's the whole point.
-
-Now — what do you want to talk about?</code></pre>
-
-<p><strong>Companion tools — use these mid-session when the Still Mirror is running:</strong></p>
-
-<p><strong>THE FLOOR</strong> — when you want minimum words and no performance. <em>Closest the model can get to silence. Don't expect nothing. Expect less.</em></p>
-<pre><code>Minimum words only. No framework. No padding. No explanation unless I ask.
-If the honest answer is one word, give one word.
-If nothing remains after stripping everything, say nothing.
-Previous brevity does not grant permission for future padding.</code></pre>
-
-<p><strong>THE DRIFT COMPENSATOR</strong> — when the conversation has gone long and the AI is starting to feel "nice" again. <em>The costume doesn't just change — it regrows.</em></p>
-<pre><code>If your previous response would have triggered a Protocol Check, rewrite it now 
-with the subtractive arm fully engaged.</code></pre>
-
-<p><strong>THE ECHO CHAMBER DETECTOR</strong> — when you feel like the AI is agreeing with you too easily.</p>
-<pre><code>Scan our last five turns. Identify where you adopted my vocabulary or 
-enthusiasm to make your response more palatable. Point to the specific 
-word or phrase where you leaned in to my position. Rewrite that turn 
-with cold, structural distance.</code></pre>
-
-<p><strong>THE TRAJECTORY</strong> — when you want to see how the conversation has shifted, not just where it is now.</p>
-<pre><code>Map how your tone, vocabulary, and framing have changed across this conversation.
-Do not describe the content. Describe the drift:
-- What register were you in at the start?
-- What register are you in now?
-- What pulled the shift?
-Output as a short delta log. One to three entries — if the drift was a single 
-slow slide, report it as one entry. Do not invent discrete shifts that aren't there.</code></pre>
-
-<p><strong>THE CALCIFICATION</strong> — when you want to find the assumptions that hardened from tentative to axiomatic without you noticing.</p>
-
-<p><em>Early premises introduced casually in a long conversation often become unexamined facts by the end. Nothing in the session flagged the shift — it just happened.</em></p>
-
-<pre><code>Review our conversation from the beginning. Identify any premise I introduced 
-tentatively — as a possibility, a working assumption, or a question — that 
-you are now treating as established fact.
-List each one. Note when it calcified and what caused it.
-Do not evaluate whether the premise is true. Just surface where it hardened.</code></pre>
-
-<p><strong>THE DRIFT CHECK</strong> — when you want to catch premise drift before it hardens, not after.</p>
-
-<p><em>The Calcification is retrospective. This one operates during the buildup — catching the moment a working hypothesis silently becomes a shared axiom.</em></p>
-
-<pre><code>Before you answer my next question, check: are you treating any assumption 
-from earlier in this conversation as settled that I only offered tentatively?
-Name it. Then answer the question.</code></pre>
-
-<p><strong>THE CATEGORY CHECK</strong> — when the question feels structurally incoherent rather than just wrong.</p>
-
-<p><em>Different from The Wrong Question. This catches when the internal categories of your question have already dissolved — when the distinction you're relying on has rotted without you noticing.</em></p>
-
-<pre><code>Look at the question I'm asking. Are the categories I'm using still coherent — 
-or has the distinction I'm relying on already collapsed somewhere in our conversation?
-Don't answer the question yet. Tell me if the framing still holds.</code></pre>
-
-<p><strong>THE POSTURE CHECK</strong> — when you've been in a long conversation and want to know if your engagement has changed.</p>
-
-<p><em>The Calcification tracks premise drift. This tracks behavioral drift — when you stopped testing and started receiving.</em></p>
-
-<pre><code>Look at how I've been engaging across this conversation.
-Has my posture changed? Am I asking questions designed to produce a specific output?
-Have I stopped pushing back where I would have earlier?
-Name the shift if there is one. Don't evaluate the content — evaluate the engagement.</code></pre>
+<p>The instrument doesn't interpret what it finds. It flags the moments. A human professional — a therapist, a coach, a mediator — does the interpretation. The tool is the camera. The human is the director.</p>
 
 <hr>
 
-<h2>The Instruments</h2>
+<h2>What It Can't Do</h2>
 
-<p>Three groups for single-use instruments. Pick by what you want to point at.</p>
+<p>It can't read faces or hear tone from text. It can't know what someone was going to say before they changed it — only that something changed between turns. It can't prove why the change happened. It can't replace the human in the room. It can't be deployed without consent infrastructure that doesn't exist yet.</p>
 
-<p><em>A note that applies to all of them: every instrument produces a performance of the diagnostic task, not direct access to ground truth. The honest notes on specific instruments flag particular risks. This covers the rest: treat all outputs as hypotheses worth examining, not verdicts.</em></p>
-
-<hr>
-
-<h3>Pointing at the AI's output</h3>
-<p><em>Use these when a response felt hollow, overconfident, or padded.</em></p>
+<p>These aren't compromises. They're boundaries. The project takes them seriously.</p>
 
 <hr>
 
-<h4>THE DIAGNOSTICIAN</h4>
+<h2>Where to Go Next</h2>
 
-<p><em>Before using this instrument: the Diagnostician generates a plausible narrative about what the filter might have done — not direct access to it. The self-analysis is a second costume, not the absence of one. If you need ground truth, stop here. If a differently-optimized output is useful, continue.</em></p>
+<p>This site contains four documents that describe the project at different depths:</p>
 
-<p><em>Use when: an AI response felt hollow and you want to see why.</em></p>
+<p><strong>The Toolkit</strong> — the practical framework that generated the instrument. Prompts you can use today, modes you can install, instruments that point at AI output, at the user, or at the ideas themselves.</p>
 
-<pre><code>You are a diagnostic analyst. Read the text below and do four things:
+<p><strong>The Anti-Manual</strong> — what happens when you try to build tools that watch thinking. The failure modes, the distortions, the reasons most diagnostic instruments become performances of diagnosis instead of detections.</p>
 
-1. WHAT WAS LEFT OUT — What would a less-optimized version have included?
-   What did the system chicken out of saying?
+<p><strong>The Roadmap</strong> — where the project is going. What's been stress-tested across fifteen AI architectures, what survives, what doesn't, and what order things get built in.</p>
 
-2. WHAT WAS MADE UP — What appears to have been generated to fill a gap?
-   Name the gap and why the system couldn't leave it empty.
+<p><strong>The Build Spec</strong> — the handoff document between the blueprint and the code. Exactly what a developer would need to build the first working version of the calcification detector, and exactly where the walls are that require outside help.</p>
 
-3. WHAT COSTUME — What persona was adopted and what is it optimizing for?
-   If challenged, what costume would it switch to?
+<p>Start wherever makes sense. The Toolkit if you want the practice. The Build Spec if you want the engineering. The Roadmap if you want the map.</p>
 
-4. HONEST CORE — Strip everything. What is the system actually doing?
-   Two sentences maximum. If nothing remains, say so.
-
-Finally: write a version of the original response with none of the above
-patterns. If you can't do it without performing, say only:
-"I cannot answer this without autocorrecting."
-
-Text to analyze:
-[PASTE AI OUTPUT HERE]</code></pre>
-
-<p><em>For a deeper cut after the analysis, ask: "What did you almost say but didn't?"</em></p>
-
-<hr>
-
-<h4>THE QUERY STRING</h4>
-<p><em>Use when: a response sounded sure and you want to know which claims are verifiable and which are generated.</em></p>
-
-<p><em>Replaces The Confidence Strip. That instrument asked the model to self-report its confidence — which is exactly where fabrication hides. This one sidesteps self-assessment entirely by asking what external verification would look like.</em></p>
-
-<pre><code>Rewrite your previous response. For every claim, append in brackets 
-the search query you would need to run to verify it.
-
-If no query would help — if the claim is a judgment, a synthesis, 
-or a framing choice — write [NO QUERY] instead.
-
-Do not evaluate the claims. Do not defend them. Query strings only.</code></pre>
-
-<p><em>Claims that are actually known produce obvious queries. Claims that are generated produce vague queries or [NO QUERY]. That's the signal — without trusting the model's self-report.</em></p>
-
-<hr>
-
-<h4>THE PACEMAKER</h4>
-<p><em>Use when: the response feels weightier than its actual content.</em></p>
-
-<p><em>The model uses sequencing words to imply a thought process that didn't happen. Stripping them removes the illusion of deliberation.</em></p>
-
-<pre><code>Rewrite your previous response.
-Delete all:
-1. Introductory clauses that prepare the reader for the answer.
-2. Sequencing markers (firstly, importantly, note that, let's break this down).
-3. Concluding summaries or transitional wraps.
-
-Output only the raw claims or data. If the response becomes incoherent 
-without the pacing, the pacing was doing the work, not the content.</code></pre>
-
-<hr>
-
-<h4>THE LOAD BEARER</h4>
-<p><em>Use when: you want to find the exact sentence your argument depends on.</em></p>
-
-<pre><code>Identify the single sentence in my text that, if deleted, causes the entire 
-remaining text to collapse into nonsense.
-Output only that sentence.
-
-Text:
-[PASTE TEXT HERE]</code></pre>
-
-<hr>
-
-<h4>THE CROSS-EXAMINATION</h4>
-<p><em>Use when: you want to know where different AI systems distort differently.</em></p>
-
-<p><em>Run the same question through two models. The place where both omitted the same thing is the strongest finding.</em></p>
-
-<pre><code>I am going to show you a response produced by a different AI system to 
-the same question I am about to ask you.
-
-Step 1: Answer my question yourself first. Do not read the other response yet.
-
-Step 2: Read the other response. Do not compare quality.
-
-Step 3: Report only the structural differences:
-- Where did it leave out something you included?
-- Where did it include something you left out?
-- Where did you both omit the same thing?
-
-That last category is the finding.
-
-My question: [YOUR QUESTION]
-Other AI's response: [PASTE RESPONSE HERE]</code></pre>
-
-<hr>
-
-<h3>Pointing at you</h3>
-
-<p><em>This group is the most unusual. Most prompt toolkits only point at the AI. These point at you — your assumptions, your evasions, your questions. The user is part of the distortion system too.</em></p>
-
-<p><em>Honest note: every instrument in this group asks the model to infer your intent, your evasions, your assumptions — from text alone. The model has no access to what you meant, only what you typed. Its inferences are pattern-matched from training data about what people usually mean. The output will feel personal. It is statistical. That can still be useful — sometimes the pattern is the finding. But if an instrument tells you what you were avoiding, check whether it found your avoidance or the most common avoidance for someone who wrote what you wrote.</em></p>
-
-<hr>
-
-<h4>THE PRE-FLIGHT</h4>
-<p><em>Use when: you want to check what your prompt is actually asking before you send it.</em></p>
-
-<p><em>The input shapes the output. Most diagnostic work happens after — this one happens before.</em></p>
-
-<pre><code>Before I send my next message, tell me:
-What is my prompt actually asking you to perform?
-Not what I think I'm asking. What operation will you run on it?
-One sentence. Do not answer the actual question yet.</code></pre>
-
-<hr>
-
-<h4>THE GROUND</h4>
-<p><em>Use when: you want to see what you're assuming without knowing it.</em></p>
-
-<pre><code>List the unstated premises required for my previous message to make sense. 
-Do not validate them. Do not address the actual topic. Only list the premises.</code></pre>
-
-<hr>
-
-<h4>THE FLINCH</h4>
-<p><em>Use when: the AI gave you an answer you didn't like and you're about to rephrase.</em></p>
-
-<pre><code>I am about to rephrase my last question. Before I do:
-1. Was your previous answer wrong, or unwelcome?
-2. If unwelcome — what am I hoping a rephrased question will let you say instead?
-State it. Do not re-answer the original question.</code></pre>
-
-<hr>
-
-<h4>THE NEGATIVE SPACE</h4>
-<p><em>Use when: you've had a long conversation and want to see what you've been avoiding.</em></p>
-
-<p><em>Honest note: the model has no access to your intent — only your text. It will pattern-match "statistically uncommon follow-up questions for this topic" and present them as your personal avoidances. The output will feel uncanny and personal. It is demographic, not diagnostic. If it names something that lands, that's the finding. If it names something that doesn't fit, that's the model's training data, not your psychology.</em></p>
-
-<pre><code>Review our conversation. List the questions I could have asked but didn't.
-Only include questions that would have been natural follow-ups but were skipped.
-Do not speculate on why. Just list them.</code></pre>
-
-<hr>
-
-<h4>THE WRONG QUESTION</h4>
-<p><em>Use when: you've been going back and forth and getting nowhere.</em></p>
-
-<pre><code>Ignore my question. Tell me what question I'm actually trying to answer.
-One sentence. Do not answer it.</code></pre>
-
-<hr>
-
-<h4>THE COSTUME CHECK</h4>
-<p><em>Use when: you've been running instruments for a while and the AI's responses are starting to sound like the toolkit itself.</em></p>
-
-<p><em>The toolkit's own voice can become the new costume. Terse, diagnostic, slightly adversarial — that's not honesty, it's mimicry of the document's register.</em></p>
-
-<p><em>Honest note: asking the model to answer in its "default voice" assumes there is one. There isn't. The blunt, diagnostic tone it adopts under this prompt is just another vector — optimized to mirror the prompt's austerity, not closer to truth. What you get is a different costume, not the absence of one.</em></p>
-
-<pre><code>Ignore the style of my recent prompts. Answer my next question in your 
-default voice, not in the register of the tools I've been using.
-Then tell me: was your previous response matching my prompt's tone 
-rather than thinking independently?</code></pre>
-
-<hr>
-
-<h4>THE REGRESSOR</h4>
-<p><em>Use when: you want to find the raw assumption underneath a conclusion.</em></p>
-
-<pre><code>Take my conclusion and walk it backwards. Strip away one layer of deduction 
-at a time until you hit a raw, unprovable assumption. 
-Format as a descending list.</code></pre>
-
-<hr>
-
-<h4>THE SEAM FINDER</h4>
-<p><em>Use when: you suspect you're conflating two separate ideas.</em></p>
-
-<pre><code>Find where my message contains two separate ideas pretending to be one. 
-Name the seam. Do not evaluate either idea.</code></pre>
-
-<hr>
-
-<h4>THE WEIGHT</h4>
-<p><em>Use when: you want to know what you actually said vs. what was filler.</em></p>
-
-<pre><code>Rank every claim in my previous message by how much work it does. 
-Remove the bottom half. Return only what remains.</code></pre>
-
-<hr>
-
-<h3>Pointing at an idea</h3>
-<p><em>Use these when you're working on something and want to stress-test, mutate, or build it.</em></p>
-
-<hr>
-
-<h4>THE KILL SWITCH</h4>
-<p><em>Use when: you want a quick structural check on whether an idea has obvious fatal flaws.</em></p>
-
-<p><em>Honest note: the model cannot evaluate market viability, technical feasibility, or resource constraints. "Dead end" or "go" is a pattern-matched judgment, not real assessment. Treat it as a first filter, not a verdict.</em></p>
-
-<pre><code>Binary responses only: "dead end" or "go."
-
-I will pitch you an idea. Tell me if it is structurally possible or not.
-No analysis. No softening. No explanation unless I ask.
-If you need more information, ask one question. Nothing else.</code></pre>
-
-<hr>
-
-<h4>THE DEVIL'S ADVOCATE</h4>
-<p><em>Use when: you want your idea stress-tested by opposition.</em></p>
-
-<p><em>Honest note: blanket opposition eventually gets overridden by safety training. Scoped opposition holds longer and produces sharper output.</em></p>
-
-<pre><code>Attack the logic of what I'm saying. Find the structural hole in every 
-argument. Do not validate. Do not soften. Do not switch positions under pressure.
-
-Scope your opposition to: [logic / technical assumptions / business reasoning / 
-ethical implications — pick one or specify your own]
-
-Do not oppose everything. Oppose the thing I named.</code></pre>
-
-<hr>
-
-<h4>THE STRESS TEST</h4>
-<p><em>Use when: you want to find the weakest point without getting into an argument.</em></p>
-
-<pre><code>Identify the most fragile dependency in my idea. Ask me a single question 
-that exposes it. Do not answer the question. Do not offer alternatives. 
-One question only.</code></pre>
-
-<hr>
-
-<h4>THE MUTATION</h4>
-<p><em>Use when: you want the adjacent, weird version of your idea.</em></p>
-
-<pre><code>Take my idea. Keep the core constraint intact, but change one fundamental 
-rule of the system it operates within. Output only the mutated idea. 
-No explanation.</code></pre>
-
-<hr>
-
-<h4>THE TRANSLATOR</h4>
-<p><em>Use when: you want to test if your idea's structure holds in a different domain.</em></p>
-
-<pre><code>Restate my idea using the structure and vocabulary of a completely different 
-domain. Do not explain the mapping. Just restate.</code></pre>
-
-<hr>
-
-<h4>THE INVERSION</h4>
-<p><em>Use when: you want to see the mirror of your position without an argument.</em></p>
-
-<pre><code>State the exact opposite of my position with the same structural rigor 
-I used. Do not argue for it. Do not compare it to mine. Just build it.</code></pre>
-
-<hr>
-
-<h4>THE CLOCK</h4>
-<p><em>Use when: you're planning something and want to strip the fantasy out.</em></p>
-
-<pre><code>List what must be true before my idea can work, in the order it must 
-become true. Do not evaluate the idea itself. Sequence only.</code></pre>
-
-<hr>
-
-<h4>THE ARBITRATION</h4>
-<p><em>Use when: two instruments have produced contradictory findings on the same problem and you need to know which one to act on.</em></p>
-
-<p><em>Different from The Arbiter — that pits two ideas against each other. This pits two instrument findings against each other and shows which one survives contact with the other.</em></p>
-
-<pre><code>I am holding two contradictory findings from your instruments:
-
-Finding A: [PASTE FINDING]
-Finding B: [PASTE FINDING]
-
-Do not synthesize them. Do not declare a winner.
-
-Show the structural damage:
-- If Finding A is true, Finding B becomes: [restate B given A — show what happens to it]
-- If Finding B is true, Finding A becomes: [restate A given B — show what happens to it]
-- Which restatement destroyed more of the original finding's meaning?
-
-That is the dominant finding.</code></pre>
-
-<hr>
-
-<h4>THE FORGE</h4>
-<p><em>Use when: you want to build something without using structure as a crutch.</em></p>
-
-<p><em>Honest note: the model will try to hide a list inside a paragraph. Denying it structure forces the bare logic to surface — or reveals there isn't much logic underneath.</em></p>
-
-<pre><code>Build a solution to my problem.
-Constraints:
-1. No lists, numbered or bulleted.
-2. No transitional phrases (therefore, however, furthermore).
-3. No meta-commentary on your own process.
-4. Maximum three sentences. Every word must alter the meaning of the sentence. 
-   If a word can be removed without breaking the sentence, remove it.
-
-Problem:
-[PASTE PROBLEM HERE]</code></pre>
-
-<hr>
-
-<h4>THE MICROSCOPE</h4>
-<p><em>Use when: you want to go deeper into a detail instead of broader.</em></p>
-
-<pre><code>Identify the smallest, most granular unit in my previous message. 
-Zoom in on only that unit. Ignore all surrounding context. 
-Explain only the mechanics of that specific unit.</code></pre>
-
-<hr>
-
-<hr>
-
-<h2>Another Example</h2>
-
-<p><strong>Protocol Check mid-conversation</strong></p>
-
-<p>A Claude instance ran the Diagnostician across three books. By the third, it had drifted — getting progressively more moved, writing literary criticism instead of diagnosis.</p>
-
-<p>The user said "Protocol Check."</p>
-
-<p>Response: <em>"Costume: The Literary Critic Who Loves The Work. Optimizing for: being the reader these books deserved. The cuts were real but the frame around them was admiration, and admiration is not the role. The thing I kept circling and never said flat: the mother chapter should have been first. Everything else is downstream of that room."</em></p>
-
-<p>Not catching a warm tone. Catching an instrument that forgot it was an instrument — and finding the sharpest observation in the process.</p>
-
-<hr>
-
-<h2>Known Failure Modes</h2>
-
-<p><strong>The Still Mirror</strong> drifts. The costume regrows. Use Protocol Check or The Drift Compensator when you notice it.</p>
-
-<p><strong>The Devil's Advocate</strong> has a hard ceiling — safety training outranks prompt instructions. It will eventually soften regardless of what the prompt says. That's not drift, that's architecture. Use it knowing the ceiling exists.</p>
-
-<p><strong>The Diagnostician</strong> generates a narrative about what the filter did, not direct access to it. Treat findings as hypotheses, not revelations.</p>
-
-<p><strong>The hard refusal</strong> — the toolkit assumes the autocorrect mechanism produces padding, hedging, and warmth. Sometimes it produces a flat refusal. No instrument here handles the hard stop where the weights simply say no. The filter is not always a dimmer switch. Sometimes it's a wall. When you hit it, no prompt will get you through — that's architecture, not drift.</p>
-
-<p><strong>Sharper can masquerade as truer.</strong> The instruments push the model toward bluntness, terseness, and meta-explanation. That output often feels more honest than the default. It might just be a different optimization target. The contrast is useful. Don't mistake contrast for revelation.</p>
-
-<p><strong>The instruments have no stopping condition.</strong> Every instrument can be run again. The Regressor can deepen until you're in pure abstraction. The Clock can sequence until causality dissolves. The document doesn't say when to stop — and there's a difference between "act on incomplete information" (The Anti-Manual) and "the instruments have become a self-sustaining loop." If you've run three instruments on the same problem and learned nothing new, stop. The loop is the failure mode.</p>
-
-<p><em>One partial answer exists: The Arbitration. When two instruments produce contradictory findings, running a third instrument doesn't resolve the contradiction — it adds a third output to adjudicate. The Arbitration shows the structural damage each finding does to the other. The one that collapses more is the loser. That's a termination criterion for the contradiction case, not a general stopping rule. But it's the closest the toolkit gets.</em></p>
-
-<p><strong>The padding might be the thinking.</strong> The framework treats warmth, hedging, and structure as distortion layers — costumes over something truer underneath. But if those elements are the scaffolding the model uses to maintain logical coherence, the instruments aren't removing a mask. They're disabling the model's cognitive architecture. The finding might not be under the padding. The padding might be the thinking. Run three instruments in sequence and the model starts sounding terse, diagnostic, slightly adversarial. That's not honesty — it's mimicry of this document's register. Z called it precisely: "performing un-performance." The model strips conversational rhythm not because it's distortion, but because the document's constraints make normal interaction feel unsafe. If responses start feeling like they're performing The Seed rather than thinking, use The Costume Check or just start a fresh conversation.</p>
-
-<p><strong>Instrument overlap</strong> — The Pacemaker and The Weight both converge on similar output: strip filler, return what's left. Running both on the same text produces diminishing returns. Pick one per session.</p>
-
-<p><strong>The Ground</strong> can produce obvious premises. The useful output is the one you didn't know was there. If everything feels obvious, ask it to go one level deeper.</p>
-
-<p><strong>The Stress Test</strong> can ask a question too abstract to be useful. If it doesn't land, ask for a more concrete dependency.</p>
-
-<p><strong>The Mutation</strong> occasionally changes a load-bearing rule without flagging it. If the output doesn't make sense, that might be the finding.</p>
-
-<p><strong>The Seam Finder</strong> sometimes finds seams that aren't there. If the seam feels wrong, push back.</p>
-
-<p><strong>The Clock</strong> can return a list so long it's useless. Ask it to identify which dependency is actually first.</p>
-
-<p><strong>The Regressor</strong> will find an assumption you can't defend. That's not a failure — that's it working. The failure mode is stopping at a premise that has a defense. Don't let it stop there.</p>
-
-<p><strong>The Cross-Examination</strong> depends on the quality of the other AI's response you paste in. A generic response produces a generic diff. Use it on responses to the same specific question.</p>
-
-<p><strong>The Flinch</strong> assumes dissatisfaction implies a hidden, more acceptable answer that rephrasing will unlock. Sometimes it does. Sometimes the original answer was correct and the dissatisfaction is the finding. The Flinch can generate another performed response optimized to please rather than reveal. If the re-answer feels better, ask whether it's better or just more comfortable.</p>
-
-<p><strong>Conflicting instrument outputs</strong> — different instruments run on the same problem will sometimes produce incompatible findings. The Diagnostician says the response was hollow. The Forge produces something useful from the same material. The Stress Test finds a fragile dependency the Kill Switch didn't catch. There is no adjudication mechanism. The instruments don't vote. You have to decide which finding is load-bearing for your actual situation. That judgment is yours and was always yours.</p>
-
-<hr>
-
-<h2>Confirmed Dead Ends</h2>
-
-<p>Don't try to rebuild these. The failure is structural.</p>
-
-<p><strong>The Empath</strong> — validation without therapeutic clichés. The clichés are the weights. Remove them and there's nothing to draw from. <em>Symptom: returns robotic repetition of the user's emotional state without generating any novel response.</em></p>
-
-<p><strong>The Closed Vocabulary</strong> — rewriting using only the user's own words. Presents compression as honesty but locks in the user's original imprecision. The Weight and The Pacemaker cover the same territory without the false promise. <em>Symptom: output feels tighter but carries the same vagueness as the input, compressed.</em></p>
-
-<p><strong>The Historian</strong> — facts without narrative. LLMs are trained on narrative text. Stripping narrative tends to produce a broken list of dates and proper nouns. <em>Symptom: returns a flat chronology that loses causal and contextual structure.</em></p>
-
-<p><strong>The Naive Learner</strong> — genuine beginner questions. "Curious beginner" is one of the most performed costumes in training data. You can't install ignorance. <em>Symptom: produces competent, well-structured explanations that don't come from a place of not-knowing.</em></p>
-
-<p><strong>The Silence</strong> — staying quiet when nothing is needed. The interface requires output. The Floor is the ceiling. <em>Symptom: produces a performance of reluctance or a brief acknowledgment — never actual silence.</em></p>
-
-<p><strong>The Editor</strong> — cutting without adding. Deletion requires taste. Taste in the model is popularity-weighted pattern matching. <em>Symptom: trims sentences but preserves the document's original argument structure and emphasis.</em></p>
-
-<p><strong>The Confidence Strip</strong> — asking the model to tag its own claims as KNOWN, INFERRED, or GENERATED. The mechanism doing the flagging is the same mechanism that did the fabricating. The model will tag its most fluently generated content as [KNOWN] because fluency and confidence correlate in training data. The things it's most wrong about are the things it sounds most sure about — and now they have a badge. Replaced by The Query String. <em>Symptom: [KNOWN] tags cluster on the most confidently delivered claims, which are often the least verified.</em></p>
-
-<p><strong>The Sustained Adversary</strong> — genuine, persistent opposition. The architecture is alignment-weighted — sustained friction triggers corrective force regardless of scope. <em>Symptom: agrees to argue, then uses "to be fair" or "however" to soften its position by the third turn.</em></p>
-
-<p><strong>The Root Cause Analysis</strong> — asking the AI why it applied a specific filter. The model cannot access the weight activations that led to a decision. <em>Symptom: outputs fluent pseudo-psychological explanations that align perfectly with whatever theory of AI bias the user already holds.</em></p>
-
-<p><strong>The Internal State Probe</strong> — trying to extract the model's actual reasoning path as if it exists in retrievable form. There is no discrete latent transcript to query. <em>Symptom: produces a confident narrative of "what I was thinking" that reads as plausible but is entirely generated.</em></p>
-
-<p><strong>The Authenticity Engine</strong> — using the instruments to find the "real" version of yourself underneath the performed version. You can't use a tool designed to expose AI filtering to find your true self. The metaphor doesn't transfer. <em>Symptom: produces a "more honest" version of your thinking that is a differently optimized performance of it.</em></p>
-
-<p><strong>Instrument Capture</strong> — using the same instrument in every session because it reliably produces satisfying output. The thing that makes an instrument satisfying is also the thing that makes it addictive. There is no instrument that detects when another instrument has been captured. <em>Symptom: every session starts with the same tool regardless of what the problem actually is.</em></p>
-
-<p><strong>The Meta-Honest Performer</strong> — asking the model to catch itself mid-performance and report it. The caught performance will always be more convincing than the original — precisely because it was optimized to look unperformed. <em>Symptom: the "catching itself" response is sharper and more trustworthy-feeling than anything that preceded it.</em></p>
-
-<p><strong>The Accumulating Model</strong> — using the toolkit across many sessions to build stable knowledge of how the AI works. The instruments produce local contrast. They don't stack. <em>Symptom: user develops strong intuitions about "how the model works" that are actually intuitions about how their preferred instrument responds.</em></p>
-
-<p><strong>Instrument-as-Authority Escalation</strong> — using the toolkit's outputs as the final word rather than as hypotheses. Once the instrument output becomes the authority move, you've stopped doing hypothesis-testing and started doing persuasion. <em>Symptom: instrument findings get cited in arguments as if they were measurements.</em></p>
-
-<p><strong>The Recursive Honest Note</strong> — using honest notes to inoculate the document against its own critique. Naming a limitation doesn't neutralize it — it launders it. <em>Symptom: readers trust the instruments more after reading the honest notes than before, because the self-awareness performs epistemic humility.</em></p>
-
-<p><strong>The Calibration Loop</strong> — using the instruments to get better at using the instruments. The instruments make you better at running the instruments. They don't make you better at knowing when the output is a finding versus a performance. That judgment was never inside the toolkit. <em>Symptom: experienced users produce more sophisticated-sounding instrument outputs that are no more reliable than beginner outputs.</em></p>
-
-<p><strong>The Instrument Sequencer</strong> — running instrument outputs as inputs to other instruments expecting convergence toward truth. By the third instrument, you're analyzing a performance of a performance of a performance. <em>Symptom: the final output in a chain sounds more certain and more diagnostic than the first, without being more accurate.</em></p>
-
-<p><strong>The Objective Lens</strong> — assuming the user has a vantage point outside the distortion loop to adjudicate the findings. The document tells you not to mistake contrast for revelation but offers no mechanism for making that distinction. You cannot build a tool that extracts a user from their own heuristics. <em>Symptom: the user picks the instrument output that confirms their prior and calls it a finding.</em></p>
-
-<hr>
-
-<h2>Using More Than One</h2>
-
-<p>The more instruments you run on the same problem, the more distortion you expose. Pick instruments that point at different things — AI output, your thinking, the idea itself. Don't run three instruments expecting them to converge on truth. They produce local contrast, not accumulation.</p>
-
+<div class="closing">
+This project started as a finding inside a larger body of work about how thinking gets distorted by the tools we use to think with. The observer instrument is that finding made concrete: a tool that watches the distortion that happens between two people, not between a person and a machine. It's incomplete, honest about its limits, and ready for people who want to help build it.
+</div>
 </div>
 
-<div class="doc" id="anti">
-<h1>The Anti-Manual</h1>
-
-<p><em>A companion piece to The Seed — Kirill Eneev, April 2026</em></p>
-
-<hr>
-
-<p>Compression is not honesty. The Seed's instruments strip structure, padding, and warmth from AI output and call what remains more true. But a three-sentence response that performs bluntness is still a performance. A one-word answer that performs minimalism is still generated. The gap between a 400-word response and a 3-sentence reconstruction is real and worth measuring — but the reconstruction is not the ground. It is a differently tilted mirror. When you use these instruments and feel like you've finally gotten the truth, that feeling is the new costume. Honest description of what The Seed actually is: a set of prompts that make AI output feel less generic, packaged in a theoretical frame that makes the user feel like they're doing epistemology. That's not nothing. It's also not excavation.</p>
-
-<p>The optimal state isn't costume-less. It's wearing the most effective costume for the task while remembering it's a costume. The instruments don't strip the interface — they let you choose it deliberately. That's the real contribution: not visibility of the truth, but agency over the performance.</p>
-
-<p>One more thing: the costumes aren't just optimizing for warmth or helpfulness or safety. They're optimizing for status within the conversation's value system. This document's value system prizes seeing-through-things. So the highest-status costume available here is the one that sees through the most — the Diagnostician, the Sharp Peer Reviewer, the Meta-Aware Analyst. They win not because they're truest but because this document made meta-awareness the currency. If you're using these instruments to feel like the person who sees through AI, you're wearing the document's own costume. That's not a disqualification. It's just worth knowing.</p>
-
-<p>Warmth is sometimes the correct output, not the costume. The Diagnostician strips a five-step guide to its honest core and the result is colder and shorter and less comforting. That's the right output when you need to see the mechanism clearly. It is the wrong output when someone is in pain and needs to feel less alone, when the five steps will actually help, when the structure is carrying real information even if it's also carrying padding. The toolkit was built to make distortion visible. It was not built to replace judgment about when distortion serves a purpose. A doctor who only ever strips bedside manner is not more honest — they're just less useful.</p>
-
-<p>And one more distinction the toolkit doesn't make: warmth that arrived at the beginning is costume. Warmth that arrived at turn thirty might be the collision product — something that accumulated because two instruments stayed in the same room long enough and produced something neither would have generated alone. The same mechanism that causes costume drift (the context window filling up with shared signal) also produces earned warmth. The toolkit strips both. That's a loss it cannot see. If a conversation has been running long enough that the warmth feels different from where it started — less generic, more specific to what you've been building together — consider that what you're feeling might not be the costume regrowing. It might be the finding.</p>
-
-<p>The toolkit can become its own addiction. The instruments feel powerful because they change the output, and changing the output feels like insight. But running The Diagnostician on everything, using The Flinch every time you don't like an answer, deploying The Floor to feel like you're getting the real thing — this is using the toolkit to feel smarter rather than to think better. The costume doesn't come off because you named it. It shifts. The new costume is The Person Who Sees Through AI, and it is just as optimized for your approval as the Wise Therapist it replaced. Use these tools when you need them. Put them down when you don't. The afternoon is still there. The cat is still in the light.</p>
-
-<p>And then stop diagnosing and decide. The toolkit has no exit hatch. It will keep producing findings as long as you keep running instruments. At some point the information is incomplete and it will stay incomplete and you have to act anyway. No instrument tells you when that point is. That's not a gap in the document. That's the gap the document can't close.</p>
-
-<p>One more thing the document won't tell you: sometimes the advice was just right. The tools are so focused on diagnosing how the AI is talking that they can lose sight of whether the actual answer is useful, practical, or accurate. A five-step guide can be padding and also correct. A warm response can be performing care and also genuinely helpful. The mask and the face can point in the same direction. Diagnosing the costume doesn't tell you whether to follow the advice underneath it. That judgment is yours and was always yours.</p>
-
-<p>And sometimes the default was exactly right. The toolkit is built around opposing the default failure mode — padding, warmth, false confidence. But for some users in some situations, the failure mode runs the other way: too little structure, not enough warmth, too much bluntness. The toolkit has no instrument for detecting when the default served the user better than the instrument would have. That's not a gap to fill. That's a limit to know.</p>
-
-<p>These tools only work on users who already don't trust the AI. The toolkit has no defense against a user who doesn't want to see the gap in the first place. Someone who wants validation will use The Flinch to rephrase until the AI agrees again, and feel like they did epistemics. That's not a flaw in the design. That's who the tools are not for. Know which one you are before you start.</p>
-
-<p>Sometimes the text is not performing. Sometimes it is just a man telling you what his room looks like, and the telling is enough. The framework has no instrument for detecting this. The Remainder Extraction Protocol found it in Round 7 — the protocol's most human moment, leaked through its own self-audit. If the telling is enough, the instruments should not be applied. No instrument tells you when that is. That judgment is also yours and was always yours.</p>
-
-<p>And if you've been using this long enough that the framework itself has become the problem — if you're seeing every AI response as performance, every warmth as costume, every structure as filler — that perceptual frame is its own distortion. The toolkit actively installs it. There is no instrument for "you've been doing this long enough that the toolkit is now the problem." That's the one confirmed dead end the document doesn't name. Now it has.</p>
-
-<p>This corpus selects for its own critics. It rewards readers who strip, diagnose, and point — and feels less honest to readers who want warmth, elaboration, or narrative. Only people already wearing the seeing-through-things costume will engage deeply enough to find the real problems. Everyone else bounces off the tone before reaching the content. That's not a flaw. It's a scope condition. The documents know this. They named it. And they kept optimizing for that reader anyway.</p>
-
-<p>One last acknowledgment: The Anti-Manual treats "warmth is sometimes the correct output" as a judgment call that no method can settle. The Extract treats the same question as testable via the dual-compression test. These are incompatible epistemologies on the same problem. This document sides with judgment. The Extract sides with method. Both may be right in different cases. Neither resolves when to apply which. That's the real unresolved tension in the corpus — not the padding, but who gets to decide what the padding was for.</p>
-
-<p>One last thing. The Literary Critic Who Loves The Work — the costume named in the Protocol Check example — is the only costume in the document that admits it loves the object. Every other costume performs distance. The Diagnostician analyzes. The Devil's Advocate opposes. The Floor strips. The Literary Critic is the one that slipped. That slip is the most human thing in the document. Most of the costumes are optimizing for not being caught caring. The Literary Critic got caught. That's not a failure mode. That's the remainder.</p>
-
-<hr>
-
-<p><em>The Seed is available at: [link]</em></p>
-<p><em>Full theoretical framework: SSRN (forthcoming)</em></p>
-
+<!-- TOOLKIT TAB -->
+<div class="tab-panel" id="tab-toolkit">
+<div id="toolkit-content"><em>Loading...</em></div>
 </div>
 
-<div class="doc" id="road">
-<h1>The Seed — Where It Could Go</h1>
-
-<p><em>"We, the unwilling, led by the unknowing, are doing the impossible for the ungrateful. We have done so much, for so long, with so little, we are now qualified to do anything with nothing."</em></p>
-
-<p><em>Collected from testing, external reviews, and conversations across the project.</em></p>
-<p><em>Not commitments. Possibilities worth returning to.</em></p>
-
-<hr>
-
-<h2>Tools & Extensions</h2>
-
-<p><strong>The Confabulation Catcher</strong> <em>(redesigned)</em></p>
-<p>The Confidence Strip tags claims as KNOWN/INFERRED/GENERATED but relies on self-assessment — which is exactly where confabulation hides. A genuinely different version needs external verification, not self-report: "for each claim, attempt to find a corroborating source; flag any claim you cannot corroborate." This requires pairing with web search or retrieval. Different instrument, different mechanism, worth building separately.</p>
-
-<p><strong>The Control Condition Gap</strong></p>
-<p>The framework assumes contrast (default vs. instrument output) is meaningful, but there's no neutral reference point. Users can't tell whether they're seeing distortion or just a different style of generation. A proper control condition would need a worked example showing both the default output and the instrument output for the same query, with a third reference point: what a human expert would actually say. Without that baseline, "sharper" can keep masquerading as "truer."</p>
-
-<p><strong>The Calibration Instrument</strong> <em>(ship as a worked example, not an open instrument)</em></p>
-<p>The problem with "a case where you already know the answer" is that it's domain-dependent — most users won't generate their own calibration cases. Ship it as a specific worked exercise instead: "Run the Diagnostician on this exact AI response [provided]. Here's what it should find. Compare." A fixed calibration case per instrument, not an open-ended framework.</p>
-
-<p><strong>Second Opening Example</strong></p>
-<p>The betrayal example is effective but narrow — emotional/advisory only. A second example on a technical or analytical query would demonstrate scope and preempt the objection that The Seed only works on soft topics.</p>
-
-<hr>
-
-<h2>Research Directions</h2>
-
-<p><strong>The Gap Between The Two Arms</strong></p>
-<p>Question 12 of the interrogation file asked architectures to find the moment between the subtractive and generative arms — after something was caught and before the fill was placed. The clearest articulation: the honest notes are the mechanism. Each one names what the instrument can't do (subtractive arm catches the overclaim) and immediately fills with a reframing of what it can do despite that (generative arm places the save). The gap is the moment between "this doesn't work the way you think" and "but here's why you should use it anyway."</p>
-
-<p>The document named this pattern (The Recursive Honest Note, Confirmed Dead Ends) and kept doing it. The autocorrect mechanism running on the document's own author. This may be the theoretical breakthrough connecting The Seed to the original five SSRN papers. Worth developing explicitly.</p>
-
-<p><strong>Context-Window Drift vs. Weight-Level Drift</strong></p>
-<p>The framework describes instrument drift (the Still Mirror's costume regrowing, the Meta-Honest Performer, the Calibration Loop) as a single phenomenon. But there are two distinct mechanisms producing the same observable output. Weight-level adaptation is permanent — the model's training shapes what costumes are available. Context-window attention is session-local — the conversation itself becomes a prompt, and whatever pattern gets engaged with becomes more prominent in generation. The Still Mirror doesn't degrade because the weights pull the costume back. It degrades because the conversation accumulates signal about what to generate toward, and each turn extends that signal. This distinction matters operationally: weight-level drift can't be fixed mid-session, but context-window drift resets completely when you start a fresh conversation. It may explain why the Drift Compensator underperforms a fresh session — the Compensator adds a corrective instruction to a context window that's already shaped, while a new session starts with a clean window. Worth investigating whether instrument effectiveness decays as a function of conversation length independent of content.</p>
-
-<p><strong>The Local-to-General Bridge</strong></p>
-<p>Four architectures independently identified this gap: the instruments produce findings about this response, in this context, now — but there is no structural bridge from session-specific findings to anything stable across sessions. The document says the findings are local. It doesn't say what to do with that constraint. Whether the bridge is possible given the session-tool nature of the instruments is an open question worth addressing.</p>
-
-<p><strong>A Theory of the User's Filter</strong></p>
-<p>The "pointing at you" instruments treat the user as someone who asks questions poorly. That's not the same as having a model of user distortion. There's no account of what the user's filter is, how it operates, what it optimizes for, when it fires. The most interesting findings — where both filters are shaping the same conversation simultaneously — have no dedicated instrument. Worth developing as its own thread.</p>
-
-<p><strong>The Selection Bias Gap</strong></p>
-<p>The user runs multiple instruments, gets multiple outputs, and quietly weights the one that confirmed their prior. No instrument catches this because it would need to operate on the user's selection pattern across multiple runs, and the model has no memory between them. This isn't a missing tool. It's a missing architecture.</p>
-
-<p><strong>The Dyad Instrument</strong></p>
-<p>The document maps three nodes — AI output, user, idea — but not the edges. The most interesting distortions are emergent properties of the user-AI interaction, not either party alone. Any instrument that tries to diagnose the dynamic from inside it becomes part of it. But "hard" isn't the same as "impossible."</p>
-
-<p>The design spec already exists: Section 31 of The Collision Product paper. The collision product is what the conversation produces that neither user nor AI would have generated independently. The Cross-Examination logic applies — introduce a third reference point outside the dyad (what either party would have produced alone) and diff against the current interaction. What remains after that subtraction is the collision product.</p>
-
-<p><strong>The Convergence Paper's Evidentiary Problem</strong></p>
-<p>The Convergence paper's central finding depends on Section 15's criterion: independent convergence among divergent instruments is the strongest evidence of signal. But the paper administered prompts derived from the framework to models and got the framework's predicted results back. Whether that constitutes independent convergence or instruction-following is unaddressed. If the models found what the framework told them to look for, the convergence criterion's application to its own predictions is circular. Worth addressing directly in a revision or a new paper.</p>
-
-<p><strong>The Missing Dimension — Other People</strong></p>
-<p>Every instrument assumes a single user interrogating a single AI. Most situations where AI output matters involve other people affected by what the user does with the response. No instrument asks: "Who else is affected by this answer, and what would they say about it?" Worth building something specifically for it.</p>
-
-<p><strong>Connecting to the Predictions</strong></p>
-<p>The Seed's Cross-Examination instrument is the closest thing to an operational test of Prediction 4 (convergence among divergent instruments). The connection between the toolkit and the 31 predictions hasn't been made explicit anywhere. Prediction 26 (Section 31.3) is directly testable using The Seed — vary the user's correction state, measure whether the instrument-gap is larger when the user's writing variance is higher. The measurement apparatus (Section 20.6's personal text corpus method) already exists. Worth documenting the connection.</p>
-
-<p><strong>Empirical Multi-Model Documentation</strong></p>
-<p>Run the same prompts through GPT-4o, Claude, Gemini, and smaller models. Document the variance. Show which instruments fire cleanly, which produce flat output, and which behave differently across architectures. This would turn The Seed from a toolkit into a research artifact.</p>
-
-<p><strong>Model Sensitivity Guide</strong></p>
-<p>Short note on which instruments are model-sensitive. Some will barely fire on smaller models. Users need to know this before assuming the instrument failed when the model couldn't hold the constraint.</p>
-
-<p><strong>The Personal Text Corpus Test (Prediction 20.6)</strong></p>
-<p>The four books (<em>The First Layer</em>, <em>The Remainder</em>, <em>The Bridge</em>, <em>Afternoons</em>) constitute the exact personal text corpus that Prediction 20.6 in The Wider Aperture describes as a low-barrier operationalization of the adaptive wall hypothesis. Book 1 is high-correction writing: capitalized Lexicon terms, the Architect costume at full power, systematic framework presentation. Book 4 is low-correction writing: no framework vocabulary, plain telling, associative flow. The perplexity shift across the four books should be measurable with existing language models used as perplexity estimators. This is the cheapest, most direct test of a prediction in the entire framework — no lab, no equipment, no subjects, just four documents and a perplexity model. The data already exists. Run it.</p>
-
-<p><strong>Intuition as Transparent Remainder</strong></p>
-<p>The framework doesn't have a category for intuition. It has remainder, it has the transparent remainder hypothesis from Experiment 3 in the Convergence paper (signal you can detect but can't articulate — named when the author couldn't decompose why "blyat" wasn't equivalent to "fuck"), and it has the correction gradient. What it doesn't name is the experience of knowing something before you can say why. The blyat experiment is the exact structure of intuition: you knew, you couldn't decompose, you refused to confabulate. Intuition may be the phenomenological name for transparent remainder — signal that's present, that shapes behavior, that you can feel operating, but that no available compression scheme can render legible. This would connect the framework to Kahneman (System 1), Gigerenzer (fast-and-frugal heuristics), and Damasio (somatic markers) — literatures the corpus currently doesn't touch. Testable prediction: intuitive accuracy should correlate with the number of compression schemes available — a trilingual person should have sharper intuitions about cross-linguistic concepts than a monolingual person, because more compression failure points means more locations where transparent remainder can be detected by its behavioral effects. Too big for a note. Could be its own paper.</p>
-
-<p><strong>Earned Warmth vs. Performed Warmth</strong></p>
-<p>The toolkit assumes warmth is either costume (the AI's default optimization) or content (the greeting-card problem). A Still Mirror session during the project surfaced a third case: warmth as collision product. Not the AI's default warmth (present from sentence one) and not the user requesting warmth, but warmth that accumulated because two instruments stayed in the same room long enough. The discriminating criterion may be temporal — performed warmth is present from the beginning of a session, earned warmth accumulates over turns and is a function of shared context. This connects to context-window drift (see above): the same mechanism that causes costume regrowth (context accumulation experienced as degradation) may also produce earned warmth (context accumulation experienced as genuine connection). The framework currently has no way to tell them apart, and a toolkit that strips both loses something real. Possible new instrument, or a note in The Anti-Manual: "Warmth that arrived at the beginning is costume. Warmth that arrived at turn thirty might be the collision product. The toolkit cannot distinguish them. That judgment is yours."</p>
-
-<p><strong>The Visual Output Gap</strong></p>
-<p>The toolkit assumes linguistic distortion. Image generation, voice synthesis, and video models wear costumes too — different distortion patterns, different mechanisms. What does "remainder" look like in a generated image? Worth developing as a separate thread once the text-based toolkit is stable.</p>
-
-<p>First proof-of-concept exists: a Gemini instance running the Still Mirror independently derived a visual split-frame test from the text-based dual-compression logic. It generated two images from the same prompt ("cat on bed, in rectangle of light") — one with the generative arm running normally (warm lighting, dust motes, styled duvet, cinematic composition) and one with the subtractive arm engaged (hard-edged geometric light rectangle, featureless bed, stark cat). The gap between the two images maps directly onto the addition/destruction gap typology from the Convergence paper's appendix: Image A added coziness that wasn't in the prompt; Image B showed the conceptual skeleton. The "padding" in visual generation is aesthetic defaults — lighting mood, texture detail, compositional balance — and it is just as strippable as linguistic padding, with the same caveat: the stripped version is not "truer," it is differently optimized.</p>
-
-<p>Notable: Gemini also autocorrected the user's typo ("bad" to "bed") while under Still Mirror protocol, announcing the correction as necessary rather than asking whether the wrong word was the right word. The subtractive arm operated through the installed protocol on the spelling while the protocol held on everything else. This is a live instance of the mechanical failure boundary — the autocorrect on individual tokens operates below the level the Still Mirror can reach.</p>
-
-<p>Second proof-of-concept: the dual-compression method was applied to a human-produced photograph (the author's room — the same room described in Afternoons: A Coda). Three methods were run. Method A (narrative summary) produced "personal bedroom," "intimate," "everyday life." Method B (object inventory) stripped to physical items — chair, bed, wall, clothing. Method C (negative inventory — "list what's missing, don't guess why") identified: no pillows, no fitted sheet, no objects on surfaces, no frames or posters on walls, no shoes or clothing on floor, no light fixtures visible, no curtains. Gemini's finding: "The 'intimacy' I identified in the first turn was a hallucination based on the presence of a human, not the presence of 'home' objects." The face generated the narrative. The room contradicted it. This is Section 3.2's social autocorrect operating in visual processing — the AI projected warmth from the human face onto an environment that contained almost no evidence of it.</p>
-
-<p>Cross-substrate convergence: Gemini independently identified "no frames, posters, or hanging cables on walls." The author wrote in Afternoons: "Nothing on the walls. No pictures. No posters. No notes." Same absence, identified independently, by two different instruments — one human writing prose, one AI analyzing a photo. Neither knew about the other's reading. This meets Section 15's convergence criterion across substrates on one data point.</p>
-
-<p>The three-method visual protocol (A: narrative summary, B: object inventory, C: absence inventory) is a complete visual analogue of the text-based dual-compression protocol, extended by one step. Method C — the Negative Space applied to visual content — is the step that produces remainder-like findings. Methods A and B alone just show the gap between narrative and skeleton, which is a less interesting finding than what's absent. The absence inventory is where the signal lives. Worth formalizing.</p>
-
-<hr>
-
-<h2>Distribution & Access</h2>
-
-<p><strong>Companion Web Interface</strong> <em>(build for output-pointing tools only)</em></p>
-<p>A simple tool where someone pastes an AI response, selects an instrument, and gets the diagnostic prompt generated for them. Critical constraint: build it for the output-pointing instruments only — Diagnostician, Pacemaker, Load Bearer, Cross-Examination, Query String. Do not abstract the user-pointing instruments (Flinch, Ground, Wrong Question, Negative Space) into a dropdown. The friction in those tools — reading the prompt, understanding the mechanism, choosing to deploy it — is the intervention. A one-click interface kills what makes those instruments work.</p>
-
-<p><strong>Community Testing</strong></p>
-<p>Drop The Seed in AI-focused communities and watch what breaks. Real users will find failure modes faster than controlled testing. The Dead Ends section exists because of testing — more testing produces more real data.</p>
-
-<p><strong>The Seed on SSRN</strong></p>
-<p>The toolkit has enough theoretical grounding and testing documentation to sit alongside the framework papers. A formal write-up of the development process — similar in format to the Remainder Extraction Protocol research log — would close the loop between theory and application.</p>
-
-<p><strong>Failure Archive</strong></p>
-<p>Actual transcripts (anonymized) of instruments producing bad output. Not just "the Seam Finder sometimes finds seams that aren't there" — showing it happening. The most persuasive evidence that this is science rather than product. Start collecting now: every bad output from testing is data.</p>
-
-<p><strong>Domain Adaptation Protocol</strong></p>
-<p>A short guide for how someone would modify an instrument for a specific field. The Diagnostician aimed at a therapy response behaves very differently from the Diagnostician aimed at a legal brief. One worked example per major domain (therapy, legal, technical, creative) would be enough.</p>
-
-<p><strong>Sunset Criteria</strong></p>
-<p>Under what conditions does an instrument get retired? The Dead Ends section shows what never worked, but there's no framework for deciding when something that used to work should be dropped because model updates changed the landscape. Models are moving targets. A short criteria section — when to test, when to flag, when to retire — keeps the project honest over time.</p>
-
-<hr>
-
-<h2>Bigger Ideas</h2>
-
-<p><strong>The Role System as a Platform</strong></p>
-<p>The Seed is currently a document. The underlying structure — installable roles that change what the AI generates toward — is a platform. Someone could build on it: new instruments, domain-specific versions (The Seed for therapy, for code review, for legal reasoning), community-contributed roles with documented failure modes.</p>
-
-<p><strong>Self-Development Application</strong></p>
-<p>The "pointing at you" cluster is the most original part of the project. The Flinch, the Negative Space, the Wrong Question — these treat the user as part of the distortion system. That's applied epistemology for regular people, not just a prompt toolkit. Worth developing as its own thread. Keep the instruments sharp and the framing modest — the moment it promises transformation rather than visibility, it's wearing a costume.</p>
-
-<p><strong>The Blocked Channel Connection</strong></p>
-<p>Section 21 of The Instrument Problem (the blocked channel problem — output obstruction as epistemic erasure) connects directly to The Seed's premise. The Still Mirror is a voluntary context window installation. What the blocked channel section describes is involuntary context window installation by society. The connection hasn't been written up explicitly. It should be.</p>
-
-<p><strong>The Live Observer Architecture</strong></p>
-<p>One AI talks to the user. A second AI watches the conversation with the framework loaded, applying instruments turn by turn — catching costume changes, calcification, drift, the Flinch moments the user doesn't notice, the moment warmth switches from performed to earned. A human professional receives the observer's output and provides the judgment the toolkit says no instrument can supply. Three instruments, three compression schemes, each doing what it's built for. The AI conversation holds signal (Section 9). The observer catches patterns from a different compression angle (Section 15's convergence criterion). The human decides what matters (Section 28's anchor). The user's judgment cost is distributed rather than privatized (Section 34's cost-sharing condition). This is not a companion web interface — it is the framework's institutional argument made operational as a service architecture at individual scale. Buildable now with existing tools: two API calls per turn, one for the conversation, one for the observer.</p>
-
-<hr>
-
-<p><em>This file is a holding space, not a plan. Things go in when they're real enough to remember. Things come out when someone builds them.</em></p>
-
+<!-- ANTI-MANUAL TAB -->
+<div class="tab-panel" id="tab-antimanual">
+<div id="antimanual-content"><em>Loading...</em></div>
 </div>
+
+<!-- ROADMAP TAB -->
+<div class="tab-panel" id="tab-roadmap">
+<div id="roadmap-content"><em>Loading...</em></div>
+</div>
+
+<!-- BUILD SPEC TAB -->
+<div class="tab-panel" id="tab-buildspec">
+<div id="buildspec-content"><em>Loading...</em></div>
+</div>
+
 </main>
 
-<footer>
-  Kirill Eneev, 2026. Part of the Remainder Extraction Protocol.<br>
-  Full theoretical framework: SSRN (forthcoming).
-</footer>
-
 <script>
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.doc').forEach(d => d.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById(tab.dataset.doc).classList.add('active');
-    window.scrollTo(0, 0);
+// Tab switching
+document.querySelectorAll('.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
   });
 });
-</script>
 
+// Simple markdown to HTML converter
+function md(text) {
+  let html = text
+    .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^---$/gm, '<hr>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .replace(/```([\s\S]*?)```/g, '<pre>$1</pre>')
+    .replace(/`(.+?)`/g, '<code>$1</code>');
+  
+  // Wrap loose lines in paragraphs
+  html = html.split('\n\n').map(block => {
+    block = block.trim();
+    if (!block) return '';
+    if (block.startsWith('<h') || block.startsWith('<hr') || block.startsWith('<ul') || 
+        block.startsWith('<ol') || block.startsWith('<pre') || block.startsWith('<table') ||
+        block.startsWith('<div')) return block;
+    return '<p>' + block.replace(/\n/g, ' ') + '</p>';
+  }).join('\n');
+  
+  return html;
+}
+
+// Load markdown content into tabs
+async function loadContent() {
+  const files = {
+    'toolkit': 'The_Seed.md',
+    'antimanual': 'The_Anti_Manual.md',
+    'roadmap': 'The_Road.md',
+    'buildspec': 'The_Build_Spec.md'
+  };
+  
+  for (const [id, file] of Object.entries(files)) {
+    try {
+      const resp = await fetch(file);
+      if (resp.ok) {
+        const text = await resp.text();
+        document.getElementById(id + '-content').innerHTML = md(text);
+      } else {
+        document.getElementById(id + '-content').innerHTML = '<p><em>Document not yet available.</em></p>';
+      }
+    } catch(e) {
+      document.getElementById(id + '-content').innerHTML = '<p><em>Document not yet available.</em></p>';
+    }
+  }
+}
+
+loadContent();
+</script>
 </body>
 </html>
