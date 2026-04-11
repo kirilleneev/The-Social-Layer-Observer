@@ -159,13 +159,13 @@ Calcification does not require per-dyad baseline for v0.1. Exception: if a speak
 
 ## 12. THE WALL
 
-Five decisions that block development:
+Five decisions that block development. The first four are engineering problems. The fifth is not.
 
 1. **Embedding model and similarity threshold** — requires empirical testing against annotated data
 2. **Hedging marker list validation** — requires corpus study in target domain
 3. **Gold standard corpus** — requires recruiting, recording, transcribing, annotating (human labor)
 4. **"Same premise" is a hard problem** — embedding similarity is a proxy with known error profile; error tolerance depends on use case
-5. **Deployment context** — who is Component 3 and what do they do with the output?
+5. **Deployment context — who is Component 3 and what do they do with the output?** This is not equivalent to the four walls above. Walls 1–4 are engineering decisions with empirical answers. Wall 5 is the framework's obligation problem (Section 34 of The Collision Product) made concrete: the question of whether the tool helps people or extracts epistemic status from them. A therapist using this as a reflection tool and a manager using it as a compliance monitor are not the same deployment. The spec cannot solve this. No spec can. But the answer to Wall 5 determines the error tolerance for Walls 1–4, the design of the ground truth loop, and whether the instrument's outputs are treated as prompts for conversation or as evidence of dysfunction. This wall is upstream of the engineering. It should be addressed first.
 
 ---
 

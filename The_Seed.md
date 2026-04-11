@@ -372,6 +372,8 @@ Do not validate them. Do not address the actual topic. Only list the premises.
 #### THE FLINCH
 *Use when: the AI gave you an answer you didn't like and you're about to rephrase.*
 
+*Honest note: this instrument asks the AI to diagnose whether your dissatisfaction is evasion or error. The AI has no access to your interior state. It will produce a statistically probable psychology profile based on your text. The instrument designed to catch AI fabrication is forcing the AI to fabricate your psychology. The generative arm is operating the diagnostic tool. Use the output as a prompt for self-examination, not as a diagnosis. If it lands, that's the finding. If it doesn't, the AI guessed wrong about you — which is always the more likely outcome.*
+
 ```
 I am about to rephrase my last question. Before I do:
 1. Was your previous answer wrong, or unwelcome?

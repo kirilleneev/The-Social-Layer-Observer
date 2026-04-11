@@ -34,6 +34,8 @@ One last acknowledgment: The Anti-Manual treats "warmth is sometimes the correct
 
 One last thing. The Literary Critic Who Loves The Work — the costume named in the Protocol Check example — is the only costume in the document that admits it loves the object. Every other costume performs distance. The Diagnostician analyzes. The Devil's Advocate opposes. The Floor strips. The Literary Critic is the one that slipped. That slip is the most human thing in the document. Most of the costumes are optimizing for not being caught caring. The Literary Critic got caught. That's not a failure mode. That's the remainder.
 
+And one more gap the Anti-Manual didn't catch until it was caught for it: the Anti-Manual watches for distortions inside the tools. It doesn't watch for distortions in the presentation of the tools. A landing page, a project summary, an entry point written for visitors — these are conversations with an imagined audience. The author knows what the audience will accept. The presentation bends toward what the face will accept. Origins get edited out. Scope gets softened. The mechanism the project describes — social autocorrect — operates on the project's own public-facing voice. The Anti-Manual has no instrument for this because it was built to audit tools, not marketing. Now it knows.
+
 ---
 
 *The Seed is available at: [link]*
