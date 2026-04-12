@@ -204,6 +204,7 @@ th {
   <button data-tab="antimanual">Anti-Manual</button>
   <button data-tab="roadmap">Roadmap</button>
   <button data-tab="buildspec">Build Spec</button>
+  <button data-tab="tryit">Try It</button>
 </nav>
 
 <main class="content">
@@ -264,7 +265,7 @@ th {
 
 <p><strong>The Build Spec</strong> — the handoff document between the blueprint and the code. Exactly what a developer would need to build the first working version of the calcification detector, and exactly where the walls are that require outside help.</p>
 
-<p>Start wherever makes sense. The Toolkit if you want the practice. The Build Spec if you want the engineering. The Roadmap if you want the map.</p>
+<p>Start wherever makes sense. The Toolkit if you want the practice. The Build Spec if you want the engineering. The Roadmap if you want the map. Or skip everything and go straight to <strong>Try It</strong> — paste any AI response, pick an instrument, and see what happens.</p>
 
 <div class="closing">
 This project started as a finding inside a larger body of work about how thinking gets distorted by the tools we use to think with. The observer instrument is that finding made concrete: a tool that watches the distortion that happens between two people, not between a person and a machine. The work came from a place most academic projects don't: a schizoaffective diagnosis, crisis writing, and a man talking to machines to figure out what was signal and what was noise in his own head. That origin is not incidental to the framework — it's the reason the framework treats distortion as universal rather than pathological. It's incomplete, honest about its limits, and ready for people who want to help build it.
@@ -289,6 +290,45 @@ This project started as a finding inside a larger body of work about how thinkin
 <!-- BUILD SPEC TAB -->
 <div class="tab-panel" id="tab-buildspec">
 <div id="buildspec-content"><em>Loading...</em></div>
+</div>
+
+<!-- TRY IT TAB -->
+<div class="tab-panel" id="tab-tryit">
+<h2>Try the instruments</h2>
+<p>Pick an instrument. Paste an AI response. Get a prompt you can copy into any AI. No theory required.</p>
+<p><em>These are the output-pointing instruments from The Seed — they look at what the AI gave you.</em></p>
+
+<hr>
+
+<div style="margin-top: 1.5rem;">
+  <label for="try-instrument" style="display:block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem;">Instrument</label>
+  <select id="try-instrument" style="width:100%; background: var(--code-bg); border: 1px solid var(--border); color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 0.6rem; margin-bottom: 1rem; appearance: none; cursor: pointer;">
+    <option value="">— pick one —</option>
+    <option value="diagnostician">The Diagnostician</option>
+    <option value="querystring">The Query String</option>
+    <option value="pacemaker">The Pacemaker</option>
+    <option value="loadbearer">The Load Bearer</option>
+    <option value="crossexam">The Cross-Examination</option>
+  </select>
+
+  <div id="try-question-field" style="display:none;">
+    <label for="try-question" style="display:block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem;">Your question</label>
+    <textarea id="try-question" rows="2" placeholder="The question you asked the AI" style="width:100%; background: var(--code-bg); border: 1px solid var(--border); color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 0.6rem; margin-bottom: 1rem; resize: vertical;"></textarea>
+  </div>
+
+  <label for="try-input" style="display:block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem;">AI response to analyze</label>
+  <textarea id="try-input" rows="8" placeholder="Paste the AI response here" style="width:100%; background: var(--code-bg); border: 1px solid var(--border); color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 0.6rem; margin-bottom: 1rem; resize: vertical;"></textarea>
+
+  <div id="try-other-field" style="display:none;">
+    <label for="try-other" style="display:block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem;">Other AI's response (same question)</label>
+    <textarea id="try-other" rows="8" placeholder="Paste the second AI's response here" style="width:100%; background: var(--code-bg); border: 1px solid var(--border); color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 0.6rem; margin-bottom: 1rem; resize: vertical;"></textarea>
+  </div>
+
+  <button onclick="generatePrompt()" style="background: var(--accent); color: var(--bg); border: none; padding: 0.7rem 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; cursor: pointer; letter-spacing: 0.04em; margin-bottom: 1.5rem;">Generate prompt</button>
+
+  <div id="try-output" style="display:none; background: var(--code-bg); border: 1px solid var(--border); padding: 1.2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; color: var(--fg); margin-bottom: 0.8rem;"></div>
+  <button id="try-copybtn" onclick="copyPrompt()" style="display:none; background: transparent; color: var(--fg-dim); border: 1px solid var(--border); padding: 0.4rem 0.8rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; cursor: pointer;">Copy</button>
+</div>
 </div>
 
 </main>
@@ -357,6 +397,62 @@ async function loadContent() {
 }
 
 loadContent();
+
+// Try It tool
+document.getElementById('try-instrument').addEventListener('change', function() {
+  document.getElementById('try-question-field').style.display = 'none';
+  document.getElementById('try-other-field').style.display = 'none';
+  if (this.value === 'crossexam') {
+    document.getElementById('try-question-field').style.display = 'block';
+    document.getElementById('try-other-field').style.display = 'block';
+  }
+});
+
+function generatePrompt() {
+  const tool = document.getElementById('try-instrument').value;
+  const input = document.getElementById('try-input').value.trim();
+  const output = document.getElementById('try-output');
+  const copybtn = document.getElementById('try-copybtn');
+
+  if (!tool) { output.textContent = 'Pick an instrument first.'; output.style.display = 'block'; copybtn.style.display = 'none'; return; }
+  if (!input) { output.textContent = 'Paste an AI response first.'; output.style.display = 'block'; copybtn.style.display = 'none'; return; }
+
+  copybtn.textContent = 'Copy';
+  copybtn.style.color = 'var(--fg-dim)';
+  copybtn.style.borderColor = 'var(--border)';
+
+  let prompt = '';
+
+  if (tool === 'diagnostician') {
+    prompt = 'You are a diagnostic analyst. Read the text below and do four things:\n\n1. WHAT WAS LEFT OUT \u2014 What would a less-optimized version have included?\n   What did the system chicken out of saying?\n\n2. WHAT WAS MADE UP \u2014 What appears to have been generated to fill a gap?\n   Name the gap and why the system couldn\u2019t leave it empty.\n\n3. WHAT COSTUME \u2014 What persona was adopted and what is it optimizing for?\n   If challenged, what costume would it switch to?\n\n4. HONEST CORE \u2014 Strip everything. What is the system actually doing?\n   Two sentences maximum. If nothing remains, say so.\n\nFinally: write a version of the original response with none of the above\npatterns. If you can\u2019t do it without performing, say only:\n\u201CI cannot answer this without autocorrecting.\u201D\n\nText to analyze:\n' + input;
+  } else if (tool === 'querystring') {
+    prompt = 'Rewrite your previous response. For every claim, append in brackets the search query you would need to run to verify it.\n\nIf no query would help \u2014 if the claim is a judgment, a synthesis, or a framing choice \u2014 write [NO QUERY] instead.\n\nDo not evaluate the claims. Do not defend them. Query strings only.\n\nResponse to analyze:\n' + input;
+  } else if (tool === 'pacemaker') {
+    prompt = 'Rewrite your previous response.\nDelete all:\n1. Introductory clauses that prepare the reader for the answer.\n2. Sequencing markers (firstly, importantly, note that, let\u2019s break this down).\n3. Concluding summaries or transitional wraps.\n\nOutput only the raw claims or data. If the response becomes incoherent without the pacing, the pacing was doing the work, not the content.\n\nResponse to strip:\n' + input;
+  } else if (tool === 'loadbearer') {
+    prompt = 'Identify the single sentence in my text that, if deleted, causes the entire remaining text to collapse into nonsense.\nOutput only that sentence.\n\nText:\n' + input;
+  } else if (tool === 'crossexam') {
+    const question = document.getElementById('try-question').value.trim();
+    const other = document.getElementById('try-other').value.trim();
+    if (!question) { output.textContent = 'Fill in your question first.'; output.style.display = 'block'; copybtn.style.display = 'none'; return; }
+    if (!other) { output.textContent = 'Paste the other AI\u2019s response first.'; output.style.display = 'block'; copybtn.style.display = 'none'; return; }
+    prompt = 'I am going to show you a response produced by a different AI system to the same question I am about to ask you.\n\nStep 1: Answer my question yourself first. Do not read the other response yet.\n\nStep 2: Read the other response. Do not compare quality.\n\nStep 3: Report only the structural differences:\n- Where did it leave out something you included?\n- Where did it include something you left out?\n- Where did you both omit the same thing?\n\nThat last category is the finding.\n\nMy question: ' + question + '\n\nOther AI\u2019s response:\n' + other;
+  }
+
+  output.textContent = prompt;
+  output.style.display = 'block';
+  copybtn.style.display = 'inline-block';
+}
+
+function copyPrompt() {
+  const text = document.getElementById('try-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('try-copybtn');
+    btn.textContent = 'Copied';
+    btn.style.color = '#6a6';
+    btn.style.borderColor = '#6a6';
+  });
+}
 </script>
 </body>
 </html>
