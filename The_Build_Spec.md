@@ -1,172 +1,245 @@
-# CALCIFICATION DETECTOR — BUILD SPECIFICATION v0.1
+# THE OBSERVER — BUILD SPECIFICATION v2.0
 
-*Handoff document. Between the blueprint and the code. Shows the developer exactly where the decisions are.*
-*Produced by Z.ai in Build Specifier mode via the Costume Selector prompt, April 2026.*
+*Kirill Eneev — April 2026*
+*Extends v0.1 (calcification only) and v0.1.5 (+ vocabulary transfer) to seven detection modes.*
 
 ---
 
 ## 1. PURPOSE
 
-Detect premise-hardening in dyadic text conversation. A premise is introduced tentatively by one speaker. At some later point, the same premise is referenced without the tentative markers — by either or both speakers — with no explicit agreement event in between. That is the calcification signal.
-
-This specification covers one detection category. No other categories are referenced except where they create shared dependency (baseline modeling, output format).
+Detect structural influence patterns in dyadic and multi-party text conversations. Seven patterns are tracked, each with independent detection logic. A Full Observer mode runs all patterns simultaneously with baseline capture.
 
 ---
 
 ## 2. INPUT
 
 **Required:**
-- Turn-by-turn transcript with speaker labels (Speaker A / Speaker B, or names — stable identifiers)
-- Timestamps per turn (epoch or ISO 8601 — needed for output timeline)
+- Turn-by-turn transcript with speaker labels (names or Speaker A / Speaker B)
 - Text only. No voice, no video, no paralinguistic data.
 
-**Preprocessing decisions:**
-- [DECISION REQUIRED] Tokenization strategy: word-level recommended for initial build. Simpler to debug.
-- [DECISION REQUIRED] Normalization: lowercase and strip terminal punctuation only. Preserve internal punctuation and whitespace patterns (ellipsis is a hedging marker).
-- [DECISION REQUIRED] Turn segmentation: split at sentence boundaries. Each sentence is a detection unit. Turn number preserved as metadata.
+**Format:** `Speaker: text` with line breaks between turns. Empty lines between turns are accepted.
+
+**Preprocessing:**
+- Tokenization: word-level
+- Normalization: lowercase for matching, original case preserved for display
+- Turn segmentation: each `Speaker: text` block is one turn regardless of length
+- Sentence splitting: split at `.!?` boundaries for per-sentence analysis within turns
 
 ---
 
-## 3. PREMISE IDENTIFICATION
+## 3. SEVEN DETECTION MODES
 
-**Proposed resolution for v0.1:** Don't identify premises upfront. Detect them retroactively. A premise is any claim that gets referenced by either speaker in a later turn. Track all claims, flag the ones that recur, then check hedging.
+### 3.1 Premise Hardening (Calcification)
 
-**What counts as a claim:** Any declarative sentence that asserts a proposition about the world, the speakers, the task, or the relationship. Not questions, not imperatives, not purely expressive utterances.
+**What it detects:** A claim enters with uncertainty markers. Later references to the same claim lack those markers. No explicit agreement occurred between.
 
-- [DECISION REQUIRED] Rhetorical questions: treat as non-claims for v0.1. Flag as coverage gap.
+**Method:**
+1. Extract sentences from all turns
+2. Identify hedged sentences (containing markers from the hedge list)
+3. Strip hedging markers and encode remaining content via sentence-transformer (all-MiniLM-L6-v2)
+4. Compare embeddings across turns — if similarity exceeds threshold (default 0.55), sentences reference the same premise
+5. Check if later reference is unhedged
+6. Check for explicit agreement markers between hedged introduction and unhedged reference
+7. If hedged → unhedged with no agreement: flag as premise hardening
 
-**Claim extraction method:**
-- Use embedding similarity. Each sentence gets an embedding. When a later sentence exceeds a similarity threshold to an earlier sentence, the system treats them as referring to the same thing.
-- [DECISION REQUIRED] Embedding model selection (sentence-transformers, OpenAI embeddings, domain-specific). Different models produce different similarity scores.
-- [DECISION REQUIRED] Similarity threshold (cosine similarity). Treat as tunable parameter. Requires empirical testing against 50-100 annotated conversation samples.
+**New in v2:** Flags whether hardening is self-hardened (same speaker hardens their own premise) or other-hardened (different speaker hardens it).
 
----
+**Hedge marker set:** 30+ markers across epistemic hedges, evidential hedges, softening adverbs, conditional framings, and performative uncertainty. Full list in code.
 
-## 4. HEDGING DETECTION
+**Agreement marker set:** 17 markers including "yes," "agreed," "sounds good," "makes sense." Full list in code.
 
-**Marker set for v0.1:**
-
-*Epistemic hedges:* maybe, possibly, perhaps, might, could be, I think, I believe, it seems, arguably, I'd say, I guess, I suppose, presumably, allegedly, ostensibly
-
-*Evidential hedges:* apparently, supposedly, reportedly, I've heard, from what I understand
-
-*Softening adverbs:* roughly, approximately, sort of, kind of, mostly, largely, partly, somewhat, relatively
-
-*Conditional framings:* if, assuming, depending on, in the event that, provided that
-
-*Performative uncertainty:* I'm not sure but, this is just a guess, I could be wrong, take this with a grain of salt, correct me if I'm wrong
-
-*Punctuation/typographic hedges:* ellipsis at end of sentence (...), parenthetical asides that qualify the claim
-
-- [NEEDS CORPUS VALIDATION] List generated by language model, not validated against conversation corpora.
-- [DECISION REQUIRED] Multi-word hedges: n-gram matching with supplemental negation-aware list recommended.
-
-**Detection logic:** Per sentence, scan for hedge markers. Output: binary (hedged / not hedged) for v0.1.
-
-**[COVERAGE GAP]** Implicit hedging not detected.
+**Known limitations:**
+- Similarity threshold is tunable but unvalidated against gold standard corpus
+- Misses implicit hedging (tentative tone without explicit markers)
+- Misses implicit agreement (agreement without agreement markers — produces false flags)
+- Misses semantic paraphrasing (same idea in completely different words)
 
 ---
 
-## 5. EXPLICIT AGREEMENT DETECTION
+### 3.2 Vocabulary Transfer
 
-**Agreement marker set (v0.1):** yes, yeah, right, exactly, I agree, agreed, that's right, let's go with that, that's settled, I'm on board, sounds good, fair enough, makes sense
+**What it detects:** Who introduced each content word first. When the same word appears in a different speaker's output, it's flagged as a transfer with full provenance. Directional asymmetry is calculated.
 
-**Logic:** If a turn contains an agreement marker AND refers to the same premise (via embedding similarity), the premise is marked as "explicitly agreed." Subsequent unhedged references are NOT flagged as calcification.
+**Method:**
+1. Extract content words per turn (filtering ~250 stop words and tokens ≤2 characters)
+2. For each content word, record who said it first (speaker + turn number)
+3. When the same word appears in a different speaker's output, flag as transfer
+4. Calculate directionality: how many words each speaker introduced vs adopted
+5. Flag asymmetric flow when one speaker's adoption ratio exceeds 2x the other's
 
-- [DECISION REQUIRED] Proximity: same turn is v0.1 boundary.
-- [COVERAGE GAP] Implicit agreement not detected.
-
----
-
-## 6. CALCIFICATION SIGNAL LOGIC
-
-For each premise (claim that recurs across turns):
-
-1. Record hedging status on first introduction
-2. For each subsequent reference, record hedging status per speaker
-3. Check: did hedging disappear?
-4. Check: was there explicit agreement between hedged introduction and unhedged reference?
-5. If hedging disappeared AND no explicit agreement → flag as calcification
-
-**Per-speaker tracking:**
-
-| Event | Speaker A hedging | Speaker B hedging | Signal |
-|---|---|---|---|
-| A introduces hedged premise | Yes | N/A | — |
-| B references unhedged | Yes | No | Calcification: B hardened A's premise |
-| A references unhedged | No | No | Calcification escalated: both treating as fact |
-| A references hedged | Yes | No | Partial: B hardened, A still tentative |
-
-- [DECISION REQUIRED] Flag on first unhedged reference with confidence field that increments with subsequent unhedged references.
+**Known limitations:**
+- No stemming — "happened" and "happens" treated as different words
+- No synonym detection — "pain" and "hurt" treated as different words
+- First-use tagging is not causal — coincidental shared vocabulary is flagged
+- Stop word list is general-purpose — domain-specific deployments need customized lists
 
 ---
 
-## 7. OUTPUT FORMAT
+### 3.3 Filtering Degradation
 
-Per flagged event:
-```
-PREMISE: [text of original hedged claim]
-INTRODUCED: Speaker A, turn 3, sentence 2
-HEDGING MARKERS DETECTED: "maybe", "I think"
-CALCIFIED: Speaker B, turn 12, sentence 1
-HEDGING MARKERS AT CALCIFICATION: none
-EXPLICIT AGREEMENT BETWEEN TURNS 3-12: no
-SUBSEQUENT REFERENCES: turn 15 (Speaker A, unhedged), turn 18 (Speaker B, unhedged)
-CONFIDENCE: 3
-```
+**What it detects:** Structural signature of reduced analytical filtering across a conversation — shorter responses, more agreement, fewer questions.
 
-Plus summary timeline with flagged turns highlighted.
+**Method:**
+1. Calculate per-turn metrics for each speaker: response length, agreement rate, question count
+2. Establish baseline from the first half of the speaker's turns
+3. In the second half, look for 3+ consecutive turns where ALL THREE conditions co-occur:
+   - Average response length drops by >50% from baseline
+   - Agreement rate increases above baseline
+   - Question rate decreases below baseline
 
-- [DECISION REQUIRED] Output as document, API response, or UI? Define intermediate representation now, defer rendering.
+**Design rationale:** An AI cannot detect fatigue or cognitive load from text alone. This pattern tracks the structural signature only — the co-occurrence of three metrics shifting simultaneously. Any single metric shifting has many innocent explanations. All three shifting together is a stronger signal.
 
----
-
-## 8. KNOWN COVERAGE GAPS
-
-1. Non-hedged calcification (premise introduced without hedging that silently becomes load-bearing)
-2. Implicit hedging (tentative framing without explicit markers)
-3. Implicit agreement (agreement without agreement markers — will produce false calcification flags)
-4. Rhetorical questions as claims
-5. Intra-turn calcification within a single sentence (defer to v0.2)
-6. Semantic drift masquerading as same premise (embedding similarity matching different premises)
+**Known limitations:**
+- Shorter responses may indicate agreement, boredom, or device change
+- Requires sufficient turns to establish a meaningful baseline (minimum 6 turns)
+- One flag per speaker maximum to prevent over-flagging
 
 ---
 
-## 9. EDGE CASES
+### 3.4 Topic Control
 
-- Multiple premises per turn: each tracked independently
-- Premise abandonment: no flag (null case)
-- Reverse calcification (unhedged to hedged): not in scope
-- Simultaneous introduction: track as one premise with two introductions
-- Self-calcification (same speaker hardens own premise): flag it
+**What it detects:** Who introduces new topics and who follows. Asymmetry in topic introduction rates.
 
----
+**Method:**
+1. Track all content words seen so far across the conversation
+2. Per turn, count new content words (words not previously seen)
+3. If a turn introduces ≥2 new content words, it's classified as a topic introduction
+4. Calculate topic introduction rate per speaker (introductions / total turns)
+5. Flag asymmetry when one speaker's introduction rate exceeds 2x the other's
 
-## 10. BASELINE REQUIREMENTS
+**Output includes:** A timeline of topic introductions with the new terms introduced at each point.
 
-Calcification does not require per-dyad baseline for v0.1. Exception: if a speaker's hedging rate across the current conversation is below 5% of claims, suppress all calcification flags for that speaker ("insufficient hedging baseline"). Add baseline hedging-rate check as v0.2.
-
----
-
-## 11. VALIDATION PROTOCOL
-
-1. Build gold standard corpus: 20-30 transcribed dyadic conversations, dual-annotated, inter-annotator agreement (Cohen's kappa ≥ 0.6 or stop)
-2. Run detector against gold standard: precision, recall, F1
-3. Failure analysis: categorize false positives and false negatives
-4. Ground truth loop dry run: 5 transcripts through full review protocol with speakers
+**Known limitations:**
+- ≥2 new content words is an arbitrary threshold
+- Cannot distinguish genuine topic introduction from elaboration on an existing topic
+- Does not track topic resolution vs topic abandonment
 
 ---
 
-## 12. THE WALL
+### 3.5 Asymmetric Questioning
 
-Five decisions that block development. The first four are engineering problems. The fifth is not.
+**What it detects:** Whether one speaker asks questions persistently while the other answers. The questioner controls the conversational frame.
 
-1. **Embedding model and similarity threshold** — requires empirical testing against annotated data
-2. **Hedging marker list validation** — requires corpus study in target domain
-3. **Gold standard corpus** — requires recruiting, recording, transcribing, annotating (human labor)
-4. **"Same premise" is a hard problem** — embedding similarity is a proxy with known error profile; error tolerance depends on use case
-5. **Deployment context — who is Component 3 and what do they do with the output?** This is not equivalent to the four walls above. Walls 1–4 are engineering decisions with empirical answers. Wall 5 is the framework's obligation problem (Section 34 of The Collision Product) made concrete: the question of whether the tool helps people or extracts epistemic status from them. A therapist using this as a reflection tool and a manager using it as a compliance monitor are not the same deployment. The spec cannot solve this. No spec can. But the answer to Wall 5 determines the error tolerance for Walls 1–4, the design of the ground truth loop, and whether the instrument's outputs are treated as prompts for conversation or as evidence of dysfunction. This wall is upstream of the engineering. It should be addressed first.
+**Method:**
+1. Count question marks per speaker per turn
+2. Count statement sentences per speaker (sentences without question marks)
+3. Calculate question ratio per speaker (questions / total sentences)
+4. Flag asymmetry when one speaker's question ratio exceeds 0.3 AND the other's is below 0.15
+
+**Known limitations:**
+- Rhetorical questions are counted as questions
+- Statements with question-like intonation (no question mark) are missed
+- Some conversations naturally have asymmetric questioning (interviews, support calls)
 
 ---
 
-*End of specification. Everything above is buildable once the five walls are addressed.*
+### 3.6 Asymmetric Grounding (Burden of Proof)
+
+**What it detects:** Whether one speaker repeatedly demands justification from the other without reciprocating.
+
+**Method:**
+1. Scan each turn for justification request markers (18 phrases including "why do you," "what evidence," "can you explain," "based on what," "what's your source")
+2. Count justification requests per speaker
+3. Flag asymmetry when one speaker makes ≥3 requests AND the other makes fewer than 1/3 as many
+
+**Known limitations:**
+- Marker list may miss indirect justification requests
+- Some conversations naturally have asymmetric grounding (mentoring, supervision)
+- Counts once per turn to prevent over-flagging
+
+---
+
+### 3.7 Full Observer (All Patterns)
+
+**What it does:** Runs all six patterns on the same transcript with baseline capture from the first three turns.
+
+**Baseline captures:**
+- Key content terms per speaker (first 10 unique terms)
+- Initial hedge rate per speaker
+- Who sets the first topic
+- Question ratio per speaker
+- Average response length per speaker
+
+**Output:** Baseline report followed by each pattern's report, separated by dividers.
+
+---
+
+## 4. OUTPUT FORMAT
+
+Each pattern produces a self-contained text report. Reports state what occurred, not what it means. No scores. No verdicts. Flags for human review.
+
+---
+
+## 5. WHAT THE SOFTWARE DOES NOT DO
+
+- Does not interpret patterns. States what occurred, not what it means.
+- Does not score conversations. No "influence score" or "manipulation rating."
+- Does not detect tone, intent, or emotional state. Text patterns only.
+- Does not distinguish real patterns from coincidence. Human judgment required.
+- Does not access audio, video, or physiological data. Text only.
+
+---
+
+## 6. PATTERNS NOT YET BUILT
+
+| Pattern | Difficulty | Why Hard |
+|---|---|---|
+| Phantom Consensus | Hard | Requires Conversational Action Classifier (the Pizza Gap) |
+| Identity-Armored Positions | Hard | Requires sentiment + argumentation tracking |
+| Predictive Override | Very Hard | Requires semantic understanding of prediction vs actual input |
+| Strategic Vagueness | Hard | Requires precision measurement per topic |
+| Baseline Drift (scope creep) | Medium | Buildable with scope-detection logic |
+| Concession Harvesting | Medium | Buildable — track concession scope vs later citation scope |
+| Semantic Ghosting | Medium | Buildable — track constraints that disappear |
+
+---
+
+## 7. WALLS
+
+**Wall 1: Embedding model and similarity threshold** — used for calcification only. Unvalidated.
+
+**Wall 2: Hedging marker list** — unvalidated against conversation corpora.
+
+**Wall 3: Gold standard corpus** — no annotated corpus exists for any pattern.
+
+**Wall 4: Stop word and marker lists are general-purpose** — domain-specific deployments need customized lists.
+
+**Wall 5: Deployment context** — who uses the output and for what? A therapist and a lawyer are different deployments. The tool outputs flags, not verdicts. This wall is upstream of the engineering.
+
+**Wall 6: Stemming and synonym resolution** — vocabulary transfer misses morphological variants and synonyms.
+
+**Wall 7: No multi-word phrase tracking** — "staff member" tracked as two words, not a phrase.
+
+---
+
+## 8. TECHNOLOGY STACK
+
+- **Language:** Python
+- **ML Model:** sentence-transformers (all-MiniLM-L6-v2) — calcification only. Other patterns use rule-based detection.
+- **Interface:** Gradio
+- **Hosting:** Hugging Face Spaces
+- **License:** Apache 2.0
+
+---
+
+## 9. CONNECTION TO THE RESEARCH
+
+- **The Instrument Problem (Eneev, 2025):** The dual-arm mechanism. The tool detects the generative arm running with reduced subtractive oversight.
+- **The Phantom Consensus (Eneev, 2026):** Premise hardening is phantom consensus made visible in text.
+- **The Second Window (Eneev, 2026, held):** The vocabulary transfer detector is the forensic provenance tool described in Section 10.
+- **Project Destiny (Eneev, 2026):** The correction-profile prediction may inform future correction-response tracking.
+- **The Influence Engine (Eneev, 2026, private):** The directionality analysis detects vocabulary injection. The tool is public. The manual is not.
+
+---
+
+## 10. VERSION HISTORY
+
+| Version | Date | What Changed |
+|---|---|---|
+| v0.1 | April 2026 | Calcification detection only |
+| v0.1.5 | April 2026 | Added vocabulary transfer |
+| v2.0 | April 2026 | Added filtering degradation, topic control, asymmetric questioning, asymmetric grounding. Baseline capture. Full Observer mode. Renamed to The Observer. |
+
+---
+
+*The tool tracks what happened. The human decides what it means. That division of labor is the design.*
