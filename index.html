@@ -203,7 +203,6 @@ th {
   <button data-tab="toolkit">Toolkit</button>
   <button data-tab="antimanual">Anti-Manual</button>
   <button data-tab="roadmap">Roadmap</button>
-  <button data-tab="buildspec">Build Spec</button>
   <button data-tab="observer">Observer Prompt</button>
   <button data-tab="tryit">Try It</button>
 </nav>
@@ -264,13 +263,11 @@ th {
 
 <p><strong>The Roadmap</strong> — where the project is going. What's been stress-tested across fifteen AI architectures, what survives, what doesn't, and what order things get built in.</p>
 
-<p><strong>The Build Spec</strong> — the handoff document between the blueprint and the code. Exactly what a developer would need to build the conversation pattern detector, and exactly where the walls are that require outside help.</p>
-
 <p><strong><a href="https://huggingface.co/spaces/KirillEneev/The-Observer" target="_blank" style="color: var(--accent);">The Observer</a></strong> — a conversation pattern detector. Paste a transcript and it flags where premises hardened without agreement, tracks vocabulary provenance across speakers, detects asymmetric questioning and topic control, and identifies structural signs of reduced filtering. Seven detection modes. Live on Hugging Face.</p>
 
 <p><strong>The Observer Prompt</strong> — a master prompt you copy-paste into any live AI conversation. Fifteen detection patterns run silently in the background. Say "report" and the AI tells you what it caught — including patterns in its own output. Tested on ChatGPT, Claude, Z.ai, and Gemini.</p>
 
-<p>Start wherever makes sense. The Toolkit if you want the practice. The Build Spec if you want the engineering. The Roadmap if you want the map. Or skip everything and go straight to <strong>Try It</strong> — paste any AI response, pick an instrument, and see what happens.</p>
+<p>Start wherever makes sense. The Toolkit if you want the practice. The Roadmap if you want the map. The Observer Prompt if you want to try it live. Or skip everything and go straight to <strong>Try It</strong> — paste any AI response, pick an instrument, and see what happens.</p>
 
 <div class="closing">
 This project started as a finding inside a larger body of work about how thinking gets distorted by the tools we use to think with. The observer instrument is that finding made concrete: a tool that watches the distortion that happens between two people, not between a person and a machine. The work came from a place most academic projects don't: a schizoaffective diagnosis, crisis writing, and a man talking to machines to figure out what was signal and what was noise in his own head. That origin is not incidental to the framework — it's the reason the framework treats distortion as universal rather than pathological. It's incomplete, honest about its limits, and ready for people who want to help build it.
@@ -290,12 +287,6 @@ This project started as a finding inside a larger body of work about how thinkin
 <!-- ROADMAP TAB -->
 <div class="tab-panel" id="tab-roadmap">
 <div id="roadmap-content"><em>Loading...</em></div>
-</div>
-
-<!-- BUILD SPEC TAB -->
-<div class="tab-panel" id="tab-buildspec">
-<p style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--accent-dim); background: var(--code-bg);"><strong style="color: var(--accent);">The Observer is live.</strong> A conversation pattern detector with seven modes is running at <a href="https://huggingface.co/spaces/KirillEneev/The-Observer" target="_blank" style="color: var(--accent);">huggingface.co/spaces/KirillEneev/The-Observer</a></p>
-<div id="buildspec-content"><em>Loading...</em></div>
 </div>
 
 <!-- OBSERVER PROMPT TAB -->
@@ -522,8 +513,7 @@ async function loadContent() {
   const files = {
     'toolkit': 'The_Seed.md',
     'antimanual': 'The_Anti_Manual.md',
-    'roadmap': 'The_Road.md',
-    'buildspec': 'The_Build_Spec.md'
+    'roadmap': 'The_Road.md'
   };
   
   for (const [id, file] of Object.entries(files)) {
